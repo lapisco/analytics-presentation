@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  face_recognition:
+    build: ./face-recognition
+
+  object_detector:
+    build: ./object-detector
+  
+  object_tracking:
+    build: ./object-tracking
+  
+  stream:
+    build: ./stream
