@@ -16,20 +16,22 @@ services:
       - ./stream:/home/stream
       - ./object-detector:/home/object-detector
       - /home/object-detector/lib/
+      - ./resources:/home/object-detector/resources
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
   
-  # object_tracking:
-  #   build: ./object-tracking
-  #   volumes:
-  #     - ./stream:/home/stream
-  #     - ./object-tracking:/home/object-tracking
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #   runtime: nvidia
-  #   environment:
-  #     - NVIDIA_VISIBLE_DEVICES=all
+  object_tracking:
+    build: ./object-tracking
+    volumes:
+      - ./stream:/home/stream
+      - ./object-tracking:/home/object-tracking
+      - ./resources:/home/object-tracking/resources
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
   
   stream:
     build: ./stream
