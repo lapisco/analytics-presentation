@@ -1,0 +1,11 @@
+*.weights
+*.cfg
+*.data
+*.name
+*resources*
+*.jpg
+*.png
+*.pickle
+*dlib*
+*__pycache__*
+*darknet*

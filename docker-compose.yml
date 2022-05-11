@@ -2,12 +2,39 @@ version: "3.9"
 services:
   face_recognition:
     build: ./face-recognition
-
+    volumes:
+      - ./stream:/home/stream
+      - ./face-recognition:/home/face-recognition
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    
   object_detector:
     build: ./object-detector
+    volumes:
+      - ./stream:/home/stream
+      - ./object-detector:/home/object-detector
+      - /home/object-detector/lib/
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
   
-  object_tracking:
-    build: ./object-tracking
+  # object_tracking:
+  #   build: ./object-tracking
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./object-tracking:/home/object-tracking
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
   
   stream:
     build: ./stream
+    volumes:
+      - ./stream:/home/stream
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    devices:
+      - "/dev/video0:/dev/video0"
