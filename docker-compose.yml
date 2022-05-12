@@ -2,6 +2,8 @@ version: "3.9"
 services:
   face_recognition:
     build: ./face-recognition
+    dns:
+      - 8.8.8.8
     volumes:
       - ./stream:/home/stream
       - ./face-recognition:/home/face-recognition
@@ -12,6 +14,8 @@ services:
     
   object_detector:
     build: ./object-detector
+    dns:
+      - 8.8.8.8
     volumes:
       - ./stream:/home/stream
       - ./object-detector:/home/object-detector
@@ -24,10 +28,24 @@ services:
   
   object_tracking:
     build: ./object-tracking
+    dns:
+      - 8.8.8.8
     volumes:
       - ./stream:/home/stream
       - ./object-tracking:/home/object-tracking
       - ./resources:/home/object-tracking/resources
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+
+  ocr_analysis:
+    build: ./ocr-analysis
+    dns:
+      - 8.8.8.8
+    volumes:
+      - ./stream:/home/stream
+      - ./ocr-analysis:/home/ocr-analysis
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
     environment:

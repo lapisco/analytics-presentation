@@ -13,21 +13,13 @@ RUN apt-get -y install git cmake unzip wget
 RUN apt-get -y install python3
 RUN apt-get -y install python3-dev
 RUN apt-get -y install python3-pip
+RUN pip install torch==1.10.1+cu111 torchvision==0.11.2+cu111 torchaudio==0.10.1 -f https://download.pytorch.org/whl/torch_stable.html
+RUN apt-get -y install tesseract-ocr libtesseract-dev
+WORKDIR /usr/share/tesseract-ocr/4.00/tessdata
+RUN wget https://github.com/tesseract-ocr/tessdata/raw/main/por.traineddata
 
-WORKDIR /home/object-detector
-
-COPY ./lib/config.py ./lib/config.py
-COPY ./lib/object_detector.py ./lib/object_detector.py
-
-# Download ant compile darknet
-WORKDIR ./lib
-RUN git clone https://github.com/herculessillva/darknet-mod.git
-RUN mv /home/object-detector/lib/darknet-mod /home/object-detector/lib/darknet
-WORKDIR ./darknet
-RUN make clean
-RUN make CUDNN=1 GPU=1 LIBSO=1 ARCH=" -gencode arch=compute_86,code=[sm_86,compute_86]"
-
-WORKDIR /home/object-detector
+# CMD ["ls", "/usr/share/tesseract-ocr/4.00/tessdata"]
+WORKDIR /home/ocr-analysis
 
 # Install project requirements
 COPY requirements.txt requirements.txt
@@ -35,5 +27,4 @@ COPY main.py main.py
 RUN pip3 install -r requirements.txt
 
 # Run service
-ENV DARKNET_PATH=/home/object-detector/lib/darknet
 CMD ["python3", "main.py"]
