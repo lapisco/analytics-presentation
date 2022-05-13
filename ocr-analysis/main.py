@@ -1,5 +1,5 @@
+from time import time
 from transformers import pipeline
-from translate import Translator
 from copy import copy
 import pytesseract
 import cv2
@@ -9,21 +9,19 @@ IMAGE_SHOW = False
 
 classifier = pipeline('sentiment-analysis')
 
-translator = Translator(from_lang="pt", to_lang="en")
-
-
 if __name__ == '__main__':
     print("ocr-analysis")
 
     while True:
         frame = cv2.imread("../stream/frame.jpg")
         frame_processed = copy(frame)
-        print(frame_processed.shape)
-        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame_rgb = cv2.adaptiveThreshold(frame,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,\
+            cv2.THRESH_BINARY,11,2)
         ocr_result = pytesseract.image_to_string(frame_rgb, lang='por').replace("\n", " ").replace("  ", " ")
-        ocr_result = translator.translate(ocr_result)
-
-        if ocr_result:
+        
+        if len(ocr_result) > 20:
             analysis_result = classifier(ocr_result)[0]
             frame_processed = cv2.putText(frame_processed, analysis_result['label'], (5, 25), cv2.FONT_HERSHEY_SIMPLEX, 1, (0,255,0), 2)
 
