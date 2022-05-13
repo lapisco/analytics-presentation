@@ -34,8 +34,8 @@ WORKDIR /home/object-tracking
 
 # Install project requirements
 COPY requirements.txt requirements.txt
-COPY main.py main.py
 RUN pip3 install -r requirements.txt
+COPY main.py main.py
 
 # Run service
 ENV DARKNET_PATH=/home/object-tracking/lib/darknet

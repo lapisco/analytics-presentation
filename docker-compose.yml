@@ -50,6 +50,18 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+
+  pose_estimation:
+    build: ./pose-estimation
+    dns:
+      - 8.8.8.8
+    volumes:
+      - ./stream:/home/stream
+      - ./pose-estimation:/home/pose-estimation
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
   
   stream:
     build: ./stream

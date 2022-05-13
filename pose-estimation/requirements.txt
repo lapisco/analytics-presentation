@@ -1,0 +1,8 @@
+imageio==2.19.1
+ipython==8.3.0
+matplotlib==3.5.2
+numpy==1.22.3
+opencv-python==4.5.5.64
+tensorflow-docs @ git+https://github.com/tensorflow/docs@97019f03550fb19d91fce4367f1043b462abff03
+tensorflow-gpu==2.8.0
+tensorflow-hub==0.12.0

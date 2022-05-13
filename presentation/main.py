@@ -5,6 +5,7 @@ IMG_FR = "../face-recognition/frame.jpg"
 IMG_OD = "../object-detector/frame.jpg"
 IMG_OT = "../object-tracking/frame.jpg"
 IMG_OA = "../ocr-analysis/frame.jpg"
+IMG_PE = "../pose-estimation/frame.jpg"
 
 IMG_OVERLAY = "./overlay.jpg"
 
@@ -25,9 +26,12 @@ if __name__ == "__main__":
         frame_oa = cv2.imread(IMG_OA)
         frame_oa = imutils.resize(frame_oa, width=600)
 
+        frame_pe = cv2.imread(IMG_PE)
+        frame_pe = imutils.resize(frame_pe, width=600)
+
         frame_over = cv2.imread(IMG_OVERLAY)
 
-        frames_ans = [frame_fr, frame_od, frame_ot, frame_oa]
+        frames_ans = [frame_fr, frame_od, frame_ot, frame_pe]
 
         for i, frame_an in enumerate(frames_ans):
             

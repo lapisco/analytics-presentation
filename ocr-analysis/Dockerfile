@@ -20,8 +20,8 @@ WORKDIR /home/ocr-analysis
 
 # Install project requirements
 COPY requirements.txt requirements.txt
-COPY main.py main.py
 RUN pip3 install -r requirements.txt
+COPY main.py main.py
 
 # Run service
 CMD ["python3", "main.py"]

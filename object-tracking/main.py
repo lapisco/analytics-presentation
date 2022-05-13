@@ -10,8 +10,6 @@ IMAGE_SHOW = False
 od = ObjectDetector()
 tracker = OCSort(det_thresh=0.6, iou_threshold=0.3, use_byte=False)
 
-cap = cv2.VideoCapture("./dance_demo.mp4")
-
 if __name__ == '__main__':
     print("object-tracking")
 
