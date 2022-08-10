@@ -33,6 +33,7 @@ services:
     volumes:
       - ./stream:/home/stream
       - ./object-tracking:/home/object-tracking
+      - /home/object-tracking/lib/
       - ./resources:/home/object-tracking/resources
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
