@@ -1,17 +1,24 @@
 from copy import copy
 import os
 import cv2
+from time import time
 from lib.object_detector import ObjectDetector
 
 IMAGE_SHOW = False
 
 od = ObjectDetector()
 
+font = cv2.FONT_HERSHEY_SIMPLEX
+
 if __name__ == '__main__':
     print("object-detector")
 
     while True:
         frame = cv2.imread("../stream/frame.jpg")
+
+        # Start timer
+        new_frame_time = time()
+
         dets = od.detect(frame)
 
         frame_processed = copy(frame)
@@ -23,14 +30,22 @@ if __name__ == '__main__':
             x_bottomright = min(dets[i]['bottomright']['x'], frame.shape[1])
             color = dets[i]['color']
 
-            frame_processed = cv2.rectangle(frame_processed, (x_topleft, y_topleft), (x_bottomright, y_bottomright), color, 2)
-            frame_processed = cv2.putText(frame_processed, label, (x_topleft, y_topleft-5), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
+            frame_processed = cv2.rectangle(
+                frame_processed, (x_topleft, y_topleft), (x_bottomright, y_bottomright), color, 2)
+            frame_processed = cv2.putText(
+                frame_processed, label, (x_topleft, y_topleft-5), cv2.FONT_HERSHEY_SIMPLEX, 1, color, 2)
 
-        
+        # Stop timer
+        prev_frame_time = time()
+        fps = 1/(prev_frame_time-new_frame_time)
+
+        cv2.putText(frame_processed, "FPS: {:.2f}".format(fps), (5, 25), font,
+                    1, (255, 0, 0), 1, cv2.LINE_AA)
+
         cv2.imwrite("./frame_temp.jpg", frame_processed)
         os.system("mv frame_temp.jpg frame.jpg")
-    
+
         if IMAGE_SHOW:
-            cv2.imshow('frame',frame_processed)
+            cv2.imshow('frame', frame_processed)
             if cv2.waitKey(22) & 0xFF == ord('q'):
                 break

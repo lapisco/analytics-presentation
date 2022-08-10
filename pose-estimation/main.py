@@ -10,6 +10,8 @@ IMAGE_SHOW = False
 
 input_size = 192
 
+font = cv2.FONT_HERSHEY_SIMPLEX
+
 if __name__ == '__main__':
     print("pose-estimation")
 
@@ -19,9 +21,13 @@ if __name__ == '__main__':
         image = tf.io.read_file(image_path)
         image = tf.image.decode_jpeg(image)
 
+        # Start timer
+        new_frame_time = time()
+
         # Resize and pad the image to keep the aspect ratio and fit the expected size.
         input_image = tf.expand_dims(image, axis=0)
-        input_image = tf.image.resize_with_pad(input_image, input_size, input_size)
+        input_image = tf.image.resize_with_pad(
+            input_image, input_size, input_size)
 
         # Run model inference.
         start = time()
@@ -36,10 +42,19 @@ if __name__ == '__main__':
             np.squeeze(display_image.numpy(), axis=0), keypoints_with_scores, output_image_height=1080)
 
         output_overlay = output_overlay[240:825, 30:-10, ::-1]
+
+        # Stop timer
+        prev_frame_time = time()
+        fps = 1/(prev_frame_time-new_frame_time)
+
+        output_overlay = output_overlay.astype(np.uint8)
+        cv2.putText(output_overlay, "FPS: {:.2f}".format(fps), (5, 25), font,
+                    1, (255, 0, 0), 1, cv2.LINE_AA)
+
         cv2.imwrite("./frame_temp.jpg", output_overlay)
         os.system("mv frame_temp.jpg frame.jpg")
 
         if IMAGE_SHOW:
-            cv2.imshow('frame',output_overlay)
+            cv2.imshow('frame', output_overlay)
             if cv2.waitKey(22) & 0xFF == ord('q'):
                 break

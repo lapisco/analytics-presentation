@@ -21,6 +21,7 @@ RUN wget -q -O model_i8.tflite https://tfhub.dev/google/lite-model/movenet/singl
 # Install project requirements
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
+RUN pip3 install protobuf==3.20.*
 COPY main.py main.py
 
 # Run service

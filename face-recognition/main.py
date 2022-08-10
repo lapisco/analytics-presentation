@@ -1,4 +1,5 @@
 import face_recognition
+from time import time
 import imutils
 import pickle
 import cv2
@@ -8,23 +9,28 @@ IMAGE_SHOW = True
 
 data = pickle.loads(open("./encodings.pickle", "rb").read())
 
+font = cv2.FONT_HERSHEY_SIMPLEX
+
 if __name__ == "__main__":
     print("face-recognition")
     # loop over frames from the video file stream
     while True:
         frame = cv2.imread("../stream/frame.jpg")
-        
+
+        # Start timer
+        new_frame_time = time()
+
         # convert the input frame from BGR to RGB then resize it to have
         # a width of 750px (to speedup processing)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         rgb = imutils.resize(frame, width=750)
         r = frame.shape[1] / float(rgb.shape[1])
-        
+
         # detect the (x, y)-coordinates of the bounding boxes
         # corresponding to each face in the input frame, then compute
         # the facial embeddings for each face
         boxes = face_recognition.face_locations(rgb,
-            model="cnn")
+                                                model="cnn")
         encodings = face_recognition.face_encodings(rgb, boxes)
         names = []
 
@@ -33,9 +39,9 @@ if __name__ == "__main__":
             # attempt to match each face in the input image to our known
             # encodings
             matches = face_recognition.compare_faces(data["encodings"],
-                encoding)
+                                                     encoding)
             name = "Unknown"
-            
+
             # check to see if we have found a match
             if True in matches:
                 # find the indexes of all matched faces then initialize a
@@ -43,18 +49,18 @@ if __name__ == "__main__":
                 # was matched
                 matchedIdxs = [i for (i, b) in enumerate(matches) if b]
                 counts = {}
-                
+
                 # loop over the matched indexes and maintain a count for
                 # each recognized face face
                 for i in matchedIdxs:
                     name = data["names"][i]
                     counts[name] = counts.get(name, 0) + 1
-                
+
                 # determine the recognized face with the largest number
                 # of votes (note: in the event of an unlikely tie Python
                 # will select first entry in the dictionary)
                 name = max(counts, key=counts.get)
-            
+
             # update the list of names
             names.append(name)
 
@@ -65,13 +71,20 @@ if __name__ == "__main__":
             right = int(right * r)
             bottom = int(bottom * r)
             left = int(left * r)
-            
+
             # draw the predicted face name on the image
             cv2.rectangle(frame, (left, top), (right, bottom),
-                (0, 255, 0), 2)
+                          (0, 255, 0), 2)
             y = top - 15 if top - 15 > 15 else top + 15
             cv2.putText(frame, name, (left, y), cv2.FONT_HERSHEY_SIMPLEX,
-                0.75, (0, 255, 0), 2)
-        
+                        0.75, (0, 255, 0), 2)
+
+        # Stop timer
+        prev_frame_time = time()
+        fps = 1/(prev_frame_time-new_frame_time)
+
+        cv2.putText(frame, "FPS: {:.2f}".format(fps), (5, 25), font,
+                    1, (255, 0, 0), 1, cv2.LINE_AA)
+
         cv2.imwrite("./frame_temp.jpg", frame)
         os.system("mv frame_temp.jpg frame.jpg")
