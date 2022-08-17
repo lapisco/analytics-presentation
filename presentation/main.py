@@ -1,5 +1,4 @@
 import cv2
-import imutils
 from time import time
 
 IMG_FR = "../face-recognition/frame.jpg"
@@ -13,8 +12,8 @@ IMG_OVERLAY = "./overlay.png"
 BOXES = [[160, 560, 20, 770], [630, 1030, 20, 770],
          [160, 560, 820, 1570], [630, 1030, 820, 1570]]
 
-TITLES = [((250, 150), "FACE RECOGITION"), ((1050, 150), "OBJECT DETECTION"),
-          ((250, 620), "OBJECT TRACKING"), ((1050, 620), "POSE ESTIMATION")]
+TITLES = [((250, 150), "FACE RECOGITION"), ((1050, 150), "OBJECT TRACKING"),
+          ((250, 620), "OBJECT DETECTION"), ((1050, 620), "POSE ESTIMATION")]
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
