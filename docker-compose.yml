@@ -6,6 +6,7 @@ services:
       - 8.8.8.8
     volumes:
       - ./stream:/home/stream
+      - ./resources:/home/face-recognition/resources
       - ./face-recognition:/home/face-recognition
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
@@ -26,39 +27,66 @@ services:
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
   
-  object_tracking:
-    build: ./object-tracking
+  # object_tracking:
+  #   build: ./object-tracking
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./object-tracking:/home/object-tracking
+  #     - /home/object-tracking/lib/
+  #     - ./resources:/home/object-tracking/resources
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
+    
+  person_stay:
+    build: ./person-stay
     dns:
       - 8.8.8.8
     volumes:
       - ./stream:/home/stream
-      - ./object-tracking:/home/object-tracking
-      - /home/object-tracking/lib/
-      - ./resources:/home/object-tracking/resources
+      - ./person-stay:/home/person-stay
+      - /home/person-stay/lib/
+      - ./resources:/home/person-stay/resources
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
 
-  ocr_analysis:
-    build: ./ocr-analysis
-    dns:
-      - 8.8.8.8
-    volumes:
-      - ./stream:/home/stream
-      - ./ocr-analysis:/home/ocr-analysis
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+  # ocr_analysis:
+  #   build: ./ocr-analysis
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./ocr-analysis:/home/ocr-analysis
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
 
-  pose_estimation:
-    build: ./pose-estimation
+  # pose_estimation:
+  #   build: ./pose-estimation
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./pose-estimation:/home/pose-estimation
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
+    
+  pose_estimation_yolo:
+    build: ./pose-estimation-yolo
     dns:
       - 8.8.8.8
     volumes:
       - ./stream:/home/stream
-      - ./pose-estimation:/home/pose-estimation
+      - ./resources:/home/pose-estimation-yolo/resources
+      - ./pose-estimation-yolo:/home/pose-estimation-yolo
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
     environment:

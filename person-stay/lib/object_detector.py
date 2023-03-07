@@ -1,3 +1,4 @@
+import lib.darknet.darknet as darknet
 import random
 from lib import config
 import copy
@@ -7,13 +8,14 @@ import sys
 os.environ['DARKNET_PATH'] = os.getcwd()+'/lib/darknet'
 sys.path.append(os.environ['DARKNET_PATH'])
 
-import lib.darknet.darknet as darknet
 
 def hex2rgb(h):
     return tuple(int(h[1 + i:1 + i + 2], 16) for i in (0, 2, 4))
 
+
 class ObjectDetector(object):
     def __init__(self):
+        print("ObjectDetector")
         self.net = darknet.load_net_custom(config.YOLO_OPTIONS['model'].encode(
             "ascii"), config.YOLO_OPTIONS['load'].encode("ascii"), 0, 1)
         self.meta = darknet.load_meta(config.YOLO_OPTIONS['meta'].encode(
@@ -24,26 +26,29 @@ class ObjectDetector(object):
             lines = f.readlines()
             for i, line in enumerate(lines):
                 if '\n' in line:
-                    line = line.replace('\n','')
+                    line = line.replace('\n', '')
                 self.classes.append(line)
         f.close()
         number_of_colors = len(self.classes)
 
         self.colors = [hex2rgb("#"+''.join([random.choice('0123456789ABCDEF') for j in range(6)]))
-                    for i in range(number_of_colors)]
+                       for i in range(number_of_colors)]
 
         self.threshold = config.YOLO_OPTIONS['threshold']
         self.darknet_image = None
         self.darknet_image_flag = False
 
     def detect(self, image):
-        self.darknet_image = darknet.make_image(image.shape[1], image.shape[0], 3)
-        darknet.copy_image_from_bytes(self.darknet_image, image[..., ::-1].tobytes())
-        detections = darknet.detect_image(self.net, self.classes, self.darknet_image, thresh=self.threshold)
+        self.darknet_image = darknet.make_image(
+            image.shape[1], image.shape[0], 3)
+        darknet.copy_image_from_bytes(
+            self.darknet_image, image[..., ::-1].tobytes())
+        detections = darknet.detect_image(
+            self.net, self.classes, self.darknet_image, thresh=self.threshold)
         detections = self.list_to_dict(detections)
         darknet.free_image(self.darknet_image)
         return detections
-    
+
     def convertBack(self, x, y, w, h):
         xmin = int(round(x - (w / 2)))
         xmax = int(round(x + (w / 2)))
@@ -66,6 +71,7 @@ class ObjectDetector(object):
             result_temp['bottomright'] = {}
             result_temp['bottomright']['y'] = bry
             result_temp['bottomright']['x'] = brx
-            result_temp["color"] = self.colors[self.classes.index(result_temp['label'])]
+            result_temp["color"] = self.colors[self.classes.index(
+                result_temp['label'])]
             result_dict[i] = copy.deepcopy(result_temp)
         return result_dict

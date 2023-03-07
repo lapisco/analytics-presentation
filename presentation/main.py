@@ -6,13 +6,15 @@ IMG_OD = "../object-detector/frame.jpg"
 IMG_OT = "../object-tracking/frame.jpg"
 IMG_OA = "../ocr-analysis/frame.jpg"
 IMG_PE = "../pose-estimation/frame.jpg"
+IMG_PEY = "../pose-estimation-yolo/frame.jpg"
+IMG_PS = "../person-stay/frame.jpg"
 
 IMG_OVERLAY = "./overlay.png"
 
 BOXES = [[160, 560, 20, 770], [630, 1030, 20, 770],
          [160, 560, 820, 1570], [630, 1030, 820, 1570]]
 
-TITLES = [((250, 150), "FACE RECOGITION"), ((1050, 150), "OBJECT TRACKING"),
+TITLES = [((250, 150), "FACE RECOGITION"), ((1050, 150), "PERSON TRACKING"),
           ((250, 620), "OBJECT DETECTION"), ((1050, 620), "POSE ESTIMATION")]
 
 font = cv2.FONT_HERSHEY_SIMPLEX
@@ -33,9 +35,13 @@ if __name__ == "__main__":
 
         frame_pe = cv2.imread(IMG_PE)
 
+        frame_pey = cv2.imread(IMG_PEY)
+
+        frame_ps = cv2.imread(IMG_PS)
+
         frame_over = cv2.imread(IMG_OVERLAY)
 
-        frames_ans = [frame_fr, frame_od, frame_ot, frame_pe]
+        frames_ans = [frame_fr, frame_od, frame_ps, frame_pey]
 
         for i, frame_an in enumerate(frames_ans):
             frame_an = cv2.resize(frame_an, (750, 400))
