@@ -4,10 +4,30 @@ import imutils
 import pickle
 import cv2
 import os
+import dlib
 
 IMAGE_SHOW = True
 
 data = pickle.loads(open("./encodings.pickle", "rb").read())
+
+detector = dlib.cnn_face_detection_model_v1("resources/mmod_human_face_detector.dat")
+
+def convert_and_trim_bb(image, rect):
+	# extract the starting and ending (x, y)-coordinates of the
+	# bounding box
+	startX = rect.left()
+	startY = rect.top()
+	endX = rect.right()
+	endY = rect.bottom()
+	# ensure the bounding box coordinates fall within the spatial
+	# dimensions of the image
+	startX = max(0, startX)
+	startY = max(0, startY)
+	endX = min(endX, image.shape[1])
+	endY = min(endY, image.shape[0])
+
+	# return our bounding box coordinates
+	return (startY, endX, endY, startX)
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -20,17 +40,15 @@ if __name__ == "__main__":
         # Start timer
         new_frame_time = time()
 
-        # convert the input frame from BGR to RGB then resize it to have
-        # a width of 750px (to speedup processing)
+        # convert the input frame from BGR to RGB then resize it
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        rgb = imutils.resize(frame, width=750)
+        rgb = imutils.resize(frame, width=600)
         r = frame.shape[1] / float(rgb.shape[1])
 
-        # detect the (x, y)-coordinates of the bounding boxes
-        # corresponding to each face in the input frame, then compute
-        # the facial embeddings for each face
-        boxes = face_recognition.face_locations(rgb,
-                                                model="cnn")
+        start = time()
+        results = detector(rgb, 0)
+        end = time()
+        boxes = [convert_and_trim_bb(frame, r.rect) for r in results]
         encodings = face_recognition.face_encodings(rgb, boxes)
         names = []
 
