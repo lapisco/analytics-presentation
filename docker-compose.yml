@@ -26,6 +26,20 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+
+  ppe_detection:
+    build: ./ppe-detection
+    dns:
+      - 8.8.8.8
+    volumes:
+      - ./stream:/home/stream
+      - ./ppe-detection:/home/ppe-detection
+      - /home/ppe-detection/lib/
+      - ./resources:/home/ppe-detection/resources
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
   
   # object_tracking:
   #   build: ./object-tracking
@@ -79,18 +93,18 @@ services:
   #   environment:
   #     - NVIDIA_VISIBLE_DEVICES=all
     
-  pose_estimation_yolo:
-    build: ./pose-estimation-yolo
-    dns:
-      - 8.8.8.8
-    volumes:
-      - ./stream:/home/stream
-      - ./resources:/home/pose-estimation-yolo/resources
-      - ./pose-estimation-yolo:/home/pose-estimation-yolo
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+  # pose_estimation_yolo:
+  #   build: ./pose-estimation-yolo
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./resources:/home/pose-estimation-yolo/resources
+  #     - ./pose-estimation-yolo:/home/pose-estimation-yolo
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
   
   stream:
     build: ./stream
@@ -99,3 +113,6 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix
     devices:
       - "/dev/video0:/dev/video0"
+      - "/dev/video1:/dev/video1"
+      # - "/dev/video2:/dev/video2"
+      # - "/dev/video3:/dev/video3"
