@@ -10,7 +10,7 @@ IMAGE_SHOW = True
 
 data = pickle.loads(open("./encodings.pickle", "rb").read())
 
-detector = dlib.cnn_face_detection_model_v1("resources/mmod_human_face_detector.dat")
+detector = dlib.cnn_face_detection_model_v1("./mmod_human_face_detector.dat")
 
 def convert_and_trim_bb(image, rect):
 	# extract the starting and ending (x, y)-coordinates of the

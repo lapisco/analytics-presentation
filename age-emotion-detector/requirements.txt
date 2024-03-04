@@ -1,0 +1,7 @@
+click==8.1.7
+dlib==19.24.2
+numba==0.58.1
+opencv-python
+scipy
+filterpy
+tensorflow==2.13.1

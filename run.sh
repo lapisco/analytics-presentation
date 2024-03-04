@@ -1,5 +1,5 @@
-docker-compose up --build -d
+sudo docker compose up --build -d
 sleep 10
 workon ap
 cd presentation && python main.py && cd ..
-docker-compose down
+sudo docker-compose down

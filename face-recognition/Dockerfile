@@ -1,35 +1,45 @@
-FROM nvidia/cuda:11.2.0-cudnn8-devel
-#FROM nvidia/cuda:10.0-cudnn7-devel
+FROM nvidia/cuda:11.2.2-cudnn8-devel-ubuntu20.04
 
 ENV TZ=America/Fortaleza
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# Install dependencies and python3
-RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
-RUN apt-get update
-RUN apt-get -y install libgl1-mesa-glx libgtk2.0-dev libpq-dev gcc
-RUN apt-get -y install git cmake unzip wget
-RUN apt-get -y install python3
-RUN apt-get -y install python3-dev
-RUN apt-get -y install python3-pip
+# Install dependencies and Python 3
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libgtk2.0-dev \
+    libpq-dev \
+    gcc \
+    git \
+    cmake \
+    unzip \
+    wget \
+    python3 \
+    python3-dev \
+    python3-pip
 
 WORKDIR /home/face-recognition
 
 # Compile DLIB
-RUN git clone https://github.com/davisking/dlib.git
-WORKDIR dlib
-RUN mkdir build
-WORKDIR build
-RUN cmake .. -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1
-RUN cmake --build .
-WORKDIR ..
-RUN python3 setup.py install
+RUN git clone https://github.com/davisking/dlib.git && \
+    cd dlib && \
+    mkdir build && \
+    cd build && \
+    cmake .. -DDLIB_USE_CUDA=1 -DUSE_AVX_INSTRUCTIONS=1 && \
+    cmake --build . && \
+    cd .. && \
+    python3 setup.py install
+
+# Copy the face detector model file
+WORKDIR /home/face-recognition/resources
+COPY mmod_human_face_detector.dat mmod_human_face_detector.dat
 
 WORKDIR /home/face-recognition
-
 # Install project requirements
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
+
+# Copy the application code
+COPY . .
 
 # Run service
 CMD ["python3", "main.py"]

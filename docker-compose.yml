@@ -1,45 +1,58 @@
 version: "3.9"
 services:
-  face_recognition:
-    build: ./face-recognition
+  # face_recognition:
+  #   build: ./face-recognition
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./resources:/home/face-recognition/resources
+  #     - ./face-recognition:/home/face-recognition
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
+
+  age_emotion_detector:
+    build: ./age-emotion-detector
     dns:
       - 8.8.8.8
     volumes:
       - ./stream:/home/stream
-      - ./resources:/home/face-recognition/resources
-      - ./face-recognition:/home/face-recognition
+      - ./resources:/home/age-emotion-detector/resources
+      - ./age-emotion-detector:/home/age-emotion-detector
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
     
-  object_detector:
-    build: ./object-detector
-    dns:
-      - 8.8.8.8
-    volumes:
-      - ./stream:/home/stream
-      - ./object-detector:/home/object-detector
-      - /home/object-detector/lib/
-      - ./resources:/home/object-detector/resources
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+  # object_detector:
+  #   build: ./object-detector
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./object-detector:/home/object-detector
+  #     - /home/object-detector/lib/
+  #     - ./resources:/home/object-detector/resources
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
 
-  ppe_detection:
-    build: ./ppe-detection
-    dns:
-      - 8.8.8.8
-    volumes:
-      - ./stream:/home/stream
-      - ./ppe-detection:/home/ppe-detection
-      - /home/ppe-detection/lib/
-      - ./resources:/home/ppe-detection/resources
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+  # ppe_detection:
+  #   build: ./ppe-detection
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./ppe-detection:/home/ppe-detection
+  #     - /home/ppe-detection/lib/
+  #     - ./resources:/home/ppe-detection/resources
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
   
   # object_tracking:
   #   build: ./object-tracking
@@ -55,19 +68,19 @@ services:
   #   environment:
   #     - NVIDIA_VISIBLE_DEVICES=all
     
-  person_stay:
-    build: ./person-stay
-    dns:
-      - 8.8.8.8
-    volumes:
-      - ./stream:/home/stream
-      - ./person-stay:/home/person-stay
-      - /home/person-stay/lib/
-      - ./resources:/home/person-stay/resources
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
+  # person_stay:
+  #   build: ./person-stay
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./stream:/home/stream
+  #     - ./person-stay:/home/person-stay
+  #     - /home/person-stay/lib/
+  #     - ./resources:/home/person-stay/resources
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
 
   # ocr_analysis:
   #   build: ./ocr-analysis
