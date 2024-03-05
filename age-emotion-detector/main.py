@@ -1,6 +1,8 @@
 from keras.models import load_model
 from scipy.spatial.distance import cdist
 from lib.sort.sort import Sort
+import csv
+import datetime
 import numpy as np
 import time
 import cv2
@@ -12,6 +14,30 @@ IMAGE_SHOW = True
 tracker = Sort()
 memory = {}
 start_time = 0
+
+intervalo = datetime.timedelta(minutes=15)
+tempo_ultima_salvacao = datetime.datetime.now()
+
+emotions_count = {
+    "Angry": 0,
+    "Happy": 0,
+    "Suprise": 0,
+    "Neutral": 0,
+    "Fear": 0,
+    "Disgust": 0,
+    "Sad": 0
+}
+
+age_count = {
+    '(0-2)': 0,
+    '(4-6)': 0,
+    '(8-12)': 0,
+    '(15-20)': 0,
+    '(25-32)': 0,
+    '(38-43)': 0,
+    '(48-53)': 0,
+    '(60-100)': 0
+}
 
 faceProto="./opencv_face_detector.pbtxt"
 
@@ -71,6 +97,29 @@ emotionTargetSize = emotionClassifier.input_shape[1:3]
 embeddings_global_list = []
 max_embeddings = 10
 persons_counter = 0
+
+def zerar_contadores():
+    global emotions_count, age_count
+    emotions_count = {
+        "Angry": 0,
+        "Happy": 0,
+        "Surprise": 0,
+        "Neutral": 0,
+        "Fear": 0,
+        "Disgust": 0,
+        "Sad": 0
+    }
+
+    age_count = {
+        '(0-2)': 0,
+        '(4-6)': 0,
+        '(8-12)': 0,
+        '(15-20)': 0,
+        '(25-32)': 0,
+        '(38-43)': 0,
+        '(48-53)': 0,
+        '(60-100)': 0
+    }
 
 def euclidean_distance(embedding1, embedding2):
     return np.linalg.norm(embedding1 - embedding2)
@@ -136,9 +185,9 @@ def closest_node(node, nodes):
     return nodes[closest_index]
 
 def track_detections(frame, detections):
-    global tracker, memory, start_time, persons_counter, embeddings_global_list
+    global tracker, memory, start_time, persons_counter, embeddings_global_list, emotions_count, age_count
+
     img_out = frame.copy()
-    boxes_times = []
     labels = []
     dets = []
     centroid_dets = []
@@ -207,15 +256,28 @@ def track_detections(frame, detections):
 
             embeddings = extract_face_embeddings(frame, faceBox)
 
+            age = age_classifier(face)
+
+            emotion_probability, emotion_prediction = emotion_classifier(grayFace)
+
             for embedding in embeddings:
                 if len(embeddings_global_list) == 0:
                     embeddings_global_list.append(embedding)
                     persons_counter += 1
+                    for emotion in emotions_count.keys():
+                        if (emotion_probability > 0.36):
+                            emotion_label_arg = np.argmax(emotion_prediction)
+                            if(emotion == emotions[emotion_label_arg]['emotion']):
+                                print("incrementou")
+                                emotions_count[emotion] += 1
+                                break
+                    for age_option in age_count.keys():
+                        if(age == age_option):
+                            age_count[age_option] += 1
                 else:
                     new_face = True
                     for stored_embedding in embeddings_global_list:
                         distance = euclidean_distance(embedding, stored_embedding)
-                        print(distance)
                         if distance < 0.6:
                             new_face = False
                             break
@@ -224,10 +286,17 @@ def track_detections(frame, detections):
                             embeddings_global_list.pop(0)
                         embeddings_global_list.append(embedding)
                         persons_counter += 1
+                        for emotion in emotions_count.keys():
+                            if (emotion_probability > 0.36):
+                                emotion_label_arg = np.argmax(emotion_prediction)
+                                if(emotion == emotions[emotion_label_arg]['emotion']):
+                                    print("incrementou")
+                                    emotions_count[emotion] += 1
+                                    break
+                        for age_option in age_count.keys():
+                            if(age == age_option):
+                                age_count[age_option] += 1
 
-            age = age_classifier(face)
-
-            emotion_probability, emotion_prediction = emotion_classifier(grayFace)
 
             x1, y1, x2, y2 = faceBox
             x = x1
@@ -264,14 +333,48 @@ def track_detections(frame, detections):
                 img_out = cv2.rectangle(frame, (x, y), (x + w, y + h), color, 2)
     return img_out
 
+def salvar_csv(age_count, emotions_count, persons_counter):
+    # Nome do arquivo CSV
+    nome_arquivo = "dados.csv"
+    # Verifica se o arquivo já existe
+    arquivo_existe = os.path.isfile(nome_arquivo)
+
+    # Abre o arquivo CSV em modo de adição ou escrita
+    with open(nome_arquivo, mode='a' if arquivo_existe else 'w', newline='') as arquivo_csv:
+        # Define os nomes das colunas
+        colunas = ['Timestamp'] + list(age_count.keys()) + list(emotions_count.keys()) + ['Total_Pessoas']
+        escritor_csv = csv.DictWriter(arquivo_csv, fieldnames=colunas)
+
+        # Se o arquivo não existia antes, escreve os nomes das colunas
+        if not arquivo_existe:
+            escritor_csv.writeheader()
+
+        # Obtém a data e hora atual
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # Cria um dicionário com os dados a serem escritos no CSV
+        dados = {'Timestamp': timestamp}
+        dados.update(age_count)
+        dados.update(emotions_count)
+        dados['Total_Pessoas'] = persons_counter
+        # Escreve uma nova linha no arquivo CSV com os dados atuais
+        escritor_csv.writerow(dados)
+        zerar_contadores()
+
 font = cv2.FONT_HERSHEY_SIMPLEX
 padding=20
 if __name__ == "__main__":
     print("face-recognition")
     # loop over frames from the video file stream
     while True:
+        if datetime.datetime.now() - tempo_ultima_salvacao >= intervalo:
+                # Salva os dados em um arquivo CSV
+                salvar_csv(age_count, emotions_count, persons_counter)
+                # Atualiza o tempo da última salvação para o momento atual
+                tempo_ultima_salvacao = datetime.datetime.now()
+
         frame = cv2.imread("../stream/frame.jpg")
-        
+        print(age_count)
+        print(emotions_count)
         # Start timer
         new_frame_time = time.time()
         try:
