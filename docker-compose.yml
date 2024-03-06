@@ -12,23 +12,38 @@ services:
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+    depends_on:
+      - stream
     
   people_counting:
     build: ./people-counting
     dns:
       - 8.8.8.8
     volumes:
-      - ./stream:/home/stream
+      - ./monitor:/home/monitor
       - ./people-counting:/home/people-counting
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
     environment:
       - NVIDIA_VISIBLE_DEVICES=all
+    depends_on:
+      - monitor
 
   stream:
     build: ./stream
     volumes:
       - ./stream:/home/stream
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    devices:
+      - "/dev/video0:/dev/video0"
+      - "/dev/video1:/dev/video1"
+      # - "/dev/video2:/dev/video2"
+      # - "/dev/video3:/dev/video3"
+
+  monitor:
+    build: ./monitor
+    volumes:
+      - ./monitor:/home/monitor
       - /tmp/.X11-unix:/tmp/.X11-unix
     devices:
       - "/dev/video0:/dev/video0"

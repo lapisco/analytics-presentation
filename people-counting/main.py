@@ -23,7 +23,7 @@ def main():
     heat_map = HeatMap()
 
     # Load initial frame
-    initial_frame = cv2.imread("../stream/frame.jpg")
+    initial_frame = cv2.imread("../monitor/frame.jpg")
     
     frame_shape = np.shape(initial_frame)
 
@@ -58,7 +58,7 @@ def main():
     last_csv_update_time = time.time()
 
     while True:
-        frame = cv2.imread("../stream/frame.jpg")
+        frame = cv2.imread("../monitor/frame.jpg")
 
 
         count += 1

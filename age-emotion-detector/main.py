@@ -19,7 +19,7 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-intervalo = datetime.timedelta(minutes=15)
+intervalo = datetime.timedelta(minutes=1)
 tempo_ultima_salvacao = datetime.datetime.now()
 
 emotions_count = {
@@ -316,7 +316,7 @@ def enviar_email():
     server.quit()
     os.rename("dados.csv", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
 
-schedule.every().hour.do(enviar_email)
+schedule.every().minute.do(enviar_email)
 
 while True:
     if datetime.datetime.now() - tempo_ultima_salvacao >= intervalo:

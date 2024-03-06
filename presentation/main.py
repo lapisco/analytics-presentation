@@ -49,7 +49,7 @@ if __name__ == "__main__":
         # Stop timer
         prev_frame_time = time()
         fps = 1 / (prev_frame_time - new_frame_time)
-        print("FPS: ", "FPS: {:.2f}".format(fps))
+        # print("FPS: ", "FPS: {:.2f}".format(fps))
 
         cv2.imshow("window", frame_over)
 

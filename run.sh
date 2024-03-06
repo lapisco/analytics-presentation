@@ -1,5 +1,5 @@
 sudo docker compose up --build -d
-sleep 10
+sleep 50
 source /usr/local/bin/virtualenvwrapper.sh
 workon ap
 cd presentation && python main.py && cd ..
