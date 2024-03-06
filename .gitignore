@@ -5,9 +5,7 @@
 *resources*
 *.jpg
 *.jpeg
-*.png
 *.pickle
-*dlib*
 *__pycache__*
 *darknet*
 *.mp4*
