@@ -18,19 +18,17 @@ if __name__ == "__main__":
         new_frame_time = time()
 
         # frame_pc = cv2.imread(IMG_PC)
-        
         frame_age = cv2.imread(IMG_AGE)
-
         frame_over = cv2.imread(IMG_OVERLAY)
 
         frames_ans = [frame_age]
 
         for i, frame_an in enumerate(frames_ans):
             h, w, _ = frame_over.shape
-            square_height = h // 2 + 100  # Define a altura do retângulo aumentada em 100 pixels
-            square_width = int(w * 0.7)  # Define a largura do retângulo
-            x = (w - square_width) // 2 + -70  # Desloca o retângulo para a direita em -70 pixels
-            y = (h - square_height) // 2  # Calcula a coordenada y do canto superior esquerdo do retângulo
+            square_height = h // 2 + 300  # Define a altura do retângulo aumentada em 100 pixels
+            square_width = int(w * 0.575)  # Define a largura do retângulo
+            x = (w - square_width) // 2 + 250  # Desloca o retângulo para a direita em 50 pixels
+            y = (h - square_height) // 2 - 100  # Calcula a coordenada y do canto superior esquerdo do retângulo
 
             frame_an = cv2.resize(frame_an, (square_width, square_height))
             frame_over[y:y + square_height, x:x + square_width, :] = frame_an
