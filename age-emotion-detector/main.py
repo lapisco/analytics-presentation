@@ -290,8 +290,7 @@ def salvar_csv(age_count, emotions_count, persons_counter):
 def enviar_email():
     try:
         from_email = "pedropedrosa@lapisco.ifce.edu.br"
-        # to_email = "pedrofeijo@lapisco.ifce.edu.br"
-        to_email = "juliomacedochaves@gmail.com"
+        to_email = "pedrofeijo@lapisco.ifce.edu.br"
         senha = "@lapisco2024"
 
         server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
