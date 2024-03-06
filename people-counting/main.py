@@ -199,46 +199,49 @@ def main():
 
             #Email
             if csv_update_counter == 4:
+                try:
+                    # Email setup
+                    sender_email = "pedropedrosa@lapisco.ifce.edu.br"
+                    sender_password = "@lapisco2024"
+                    receiver_email = "pedrofeijo@lapisco.ifce.edu.br"
 
-                # Email setup
-                sender_email = "pedropedrosa@lapisco.ifce.edu.br"
-                sender_password = "@lapisco2024"
-                receiver_email = "pedrofeijo@lapisco.ifce.edu.br"
+                    print("A1")
+                    msg = MIMEMultipart()
+                    msg['From'] = sender_email
+                    msg['To'] = receiver_email
+                    msg['Subject'] = "CSV File Update"
+                    print("A2")
+                    # Add text message to email body
+                    body = "Olá,\n\nSegue relatório(s) referente(s) ao mapa de calor do local e/ou presença do público.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
+                    msg.attach(MIMEText(body, 'plain'))
+                    print("A3")
 
-                print("A1")
-                msg = MIMEMultipart()
-                msg['From'] = sender_email
-                msg['To'] = receiver_email
-                msg['Subject'] = "CSV File Update"
-                print("A2")
-                # Add text message to email body
-                body = "Olá,\n\nSegue relatório(s) referente(s) ao mapa de calor do local e/ou presença do público.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
-                msg.attach(MIMEText(body, 'plain'))
-                print("A3")
+                    # Attach CSV file
+                    with open(output_csv_path, 'rb') as csv_file:
+                        print("A4")
+                        attachment = MIMEApplication(csv_file.read(), _subtype="csv")
+                        attachment.add_header('Content-Disposition', 'attachment', filename=f'{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
+                        msg.attach(attachment)
+                        print("A5")
+                    
+                    # Attach heatmap CSV file
+                    with open('heatmap.csv', 'rb') as heatmap_file:
+                        attachment_heatmap = MIMEApplication(heatmap_file.read(), _subtype="csv")
+                        attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'heatmap_{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
+                        msg.attach(attachment_heatmap)
 
-                # Attach CSV file
-                with open(output_csv_path, 'rb') as csv_file:
-                    print("A4")
-                    attachment = MIMEApplication(csv_file.read(), _subtype="csv")
-                    attachment.add_header('Content-Disposition', 'attachment', filename=f'{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
-                    msg.attach(attachment)
-                    print("A5")
-                
-                # Attach heatmap CSV file
-                with open('heatmap.csv', 'rb') as heatmap_file:
-                    attachment_heatmap = MIMEApplication(heatmap_file.read(), _subtype="csv")
-                    attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'heatmap_{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
-                    msg.attach(attachment_heatmap)
-
-                # Connect to the SMTP server and send email
-                with smtplib.SMTP('smtp.gmail.com', 587) as server:
-                    print("A6")
-                    server.starttls()
-                    print("A7")
-                    server.login(sender_email, sender_password)
-                    print("A8")
-                    server.sendmail(sender_email, receiver_email, msg.as_string())
-                    print("Email enviado")
+                    # Connect to the SMTP server and send email
+                    with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as server:
+                        print("A6")
+                        server.starttls()
+                        print("A7")
+                        server.login(sender_email, sender_password)
+                        print("A8")
+                        server.sendmail(sender_email, receiver_email, msg.as_string())
+                        print("Email enviado")
+                except:
+                    print("Falha ao enviar Email")
+                    #lógica para salvar csv q não foi enviado
 
                 # Reset CSV 
                 with open(output_csv_path, mode='w', newline='') as file:

@@ -19,7 +19,6 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 
-intervalo = datetime.timedelta(minutes=1)
 tempo_ultima_salvacao = datetime.datetime.now()
 
 emotions_count = {
@@ -212,7 +211,7 @@ def process_faces(frame, box, track_id, track_history):
             new_face = True
             for stored_embedding in embeddings_global_list:
                 distance = euclidean_distance(embedding, stored_embedding)
-                if distance < 0.55:
+                if distance < 0.58:
                     new_face = False
                     break
             if new_face:
@@ -289,33 +288,41 @@ def salvar_csv(age_count, emotions_count, persons_counter):
         zerar_contadores()
 
 def enviar_email():
-    from_email = "pedropedrosa@lapisco.ifce.edu.br"
-    to_email = "pedrofeijo@lapisco.ifce.edu.br"
-    senha = "@lapisco2024"
+    try:
+        from_email = "pedropedrosa@lapisco.ifce.edu.br"
+        # to_email = "pedrofeijo@lapisco.ifce.edu.br"
+        to_email = "juliomacedochaves@gmail.com"
+        senha = "@lapisco2024"
 
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login(from_email, senha)
+        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+        server.starttls()
+        server.login(from_email, senha)
 
-    msg = MIMEMultipart()
-    msg['From'] = from_email
-    msg['To'] = to_email
-    msg['Subject'] = "Analytics Report"
+        msg = MIMEMultipart()
+        msg['From'] = from_email
+        msg['To'] = to_email
+        msg['Subject'] = "CSV File Update Facial"
 
-    filename = "dados.csv"
-    attachment = open(filename, "rb")
-    part = MIMEBase("application", "octet-stream")
-    part.set_payload((attachment).read())
-    encoders.encode_base64(part)
-    part.add_header("Content-Disposition", "attachment; filename= " + filename)
-    msg.attach(part)
+        body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
+        msg.attach(MIMEText(body, 'plain'))
 
-    server.send_message(msg)
-    print("E-mail enviado com sucesso para", to_email)
+        filename = "dados.csv"
+        attachment = open(filename, "rb")
+        part = MIMEBase("application", "octet-stream")
+        part.set_payload((attachment).read())
+        encoders.encode_base64(part)
+        part.add_header("Content-Disposition", "attachment; filename= " + filename)
+        msg.attach(part)
 
-    server.quit()
-    os.rename("dados.csv", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+        server.send_message(msg)
+        print("E-mail enviado com sucesso para", to_email)
 
+        server.quit()
+        os.rename("dados.csv", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+    except:
+        os.rename("dados.csv", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+
+intervalo = datetime.timedelta(minutes=1)
 schedule.every().minute.do(enviar_email)
 
 while True:
