@@ -1,6 +1,6 @@
 #!/bin/sh
 
-docker stop $(docker ps -aq)
-docker rm $(docker ps -aq)
-docker volume rm $(sudo docker volume ls -q)
-docker system prune --all --force --volumes
+sudo docker stop $(docker ps -aq)
+sudo docker rm $(docker ps -aq)
+sudo docker volume rm $(sudo docker volume ls -q)
+sudo docker system prune --all --force --volumes
