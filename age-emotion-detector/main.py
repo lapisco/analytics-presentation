@@ -332,7 +332,7 @@ while True:
     new_frame_time = time.time()
     
     # Run YOLOv8 tracking on the frame, persisting tracks between frames
-    results = model.track(frame, persist=True, conf=0.65, verbose=False)
+    results = model.track(frame, persist=True, conf=0.50, verbose=False)
 
     # Get the boxes and track IDs
     boxes = results[0].boxes.xywh.cpu()

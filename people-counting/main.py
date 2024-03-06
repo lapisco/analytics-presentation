@@ -27,9 +27,6 @@ def main():
     
     frame_shape = np.shape(initial_frame)
 
-    output = cv2.VideoWriter('./videos/output_final.avi', cv2.VideoWriter_fourcc(
-        *'MPEG'), 30, (frame_shape[0], frame_shape[1]))
-
     # Get object classes
     file = open('./coco.names', 'r')
     data = file.read()
@@ -151,7 +148,6 @@ def main():
 
         cvzone.putTextRect(frame, f'Down: {downcount}', (50, 60), 2, 2)
         cvzone.putTextRect(frame, f'Up: {upcount}', (50, 160), 2, 2)
-        output.write(frame)
 
         # Atualizar o arquivo CSV a cada hora
         current_time = time.time()
