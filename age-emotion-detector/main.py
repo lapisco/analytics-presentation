@@ -212,7 +212,7 @@ def process_faces(frame, box, track_id, track_history):
             new_face = True
             for stored_embedding in embeddings_global_list:
                 distance = euclidean_distance(embedding, stored_embedding)
-                if distance < 0.6:
+                if distance < 0.55:
                     new_face = False
                     break
             if new_face:
