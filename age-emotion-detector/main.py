@@ -8,7 +8,41 @@ import os
 import cv2
 import time
 import dlib
+import csv
 import numpy as np
+import datetime
+
+import smtplib
+import schedule
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+
+intervalo = datetime.timedelta(minutes=15)
+tempo_ultima_salvacao = datetime.datetime.now()
+
+emotions_count = {
+    "Anger": 0,
+    "Contempt": 0,
+    "Disgust": 0,
+    "Fear": 0,
+    "Happiness": 0,
+    "Neutral": 0,
+    "Sadness": 0,
+    "Surprise": 0
+}
+
+age_count = {
+    '(0-2)': 0,
+    '(4-6)': 0,
+    '(8-12)': 0,
+    '(15-20)': 0,
+    '(25-32)': 0,
+    '(38-43)': 0,
+    '(48-53)': 0,
+    '(60-100)': 0
+}
 
 emotions = {
     "Anger": {
@@ -25,7 +59,7 @@ emotions = {
         "color": (23, 164, 28)
     },
     "Happiness": {
-        "color": (164, 93, 23)
+        "color": (88, 158, 38)
     },
     "Neutral": {
         "color": (218, 229, 97)
@@ -35,7 +69,7 @@ emotions = {
         "color": (108, 72, 200)
     },
     "Surprise": {
-        "color": (88, 158, 38)
+        "color": (164, 93, 23)
     }
 }
 
@@ -70,6 +104,31 @@ ageList = ['(0-2)', '(4-6)', '(8-12)', '(15-20)',
 
 ageNet = cv2.dnn.readNet(ageModel, ageProto)
 
+
+def zerar_contadores():
+    global emotions_count, age_count
+    emotions_count = {
+        "Anger": 0,
+        "Contempt": 0,
+        "Disgust": 0,
+        "Fear": 0,
+        "Happiness": 0,
+        "Neutral": 0,
+        "Sadness": 0,
+        "Surprise": 0
+    }
+
+
+    age_count = {
+        '(0-2)': 0,
+        '(4-6)': 0,
+        '(8-12)': 0,
+        '(15-20)': 0,
+        '(25-32)': 0,
+        '(38-43)': 0,
+        '(48-53)': 0,
+        '(60-100)': 0
+    }
 
 def age_classifier(face):
     # blob = cv2.dnn.blobFromImages([face], 1.5, (227, 227), MODEL_MEAN_VALUES, swapRB=False) # FIXME: batch
@@ -129,17 +188,31 @@ def process_faces(frame, box, track_id, track_history):
     embeddings = extract_face_embeddings(frame, faceBox)
     # embeddings = fr.face_encodings(cv2.cvtColor(face, cv2.COLOR_BGR2RGB),
     #                                  boxes, num_jitters=jitters)
+    ages = age_classifier(face)
+
+    emotion_prediction, emotion_probability = fer.predict_emotions(
+        face, logits=False)
 
     for embedding in embeddings:
         if len(embeddings_global_list) == 0:
             embeddings_global_list.append(embedding)
             persons_counter += 1
+            for emotion in emotions_count.keys():
+                print(emotion_prediction)
+                print(emotion)
+                if (np.max(emotion_probability) > 0.36):
+                    if(emotion == emotion_prediction):
+                        print("incrementou")
+                        emotions_count[emotion] += 1
+                        break
+            for age_option in age_count.keys():
+                if(ages == age_option):
+                    age_count[age_option] += 1
         else:
             new_face = True
             for stored_embedding in embeddings_global_list:
                 distance = euclidean_distance(embedding, stored_embedding)
-                # print(distance)
-                if distance < 0.55:
+                if distance < 0.6:
                     new_face = False
                     break
             if new_face:
@@ -147,12 +220,16 @@ def process_faces(frame, box, track_id, track_history):
                     embeddings_global_list.pop(0)
                 embeddings_global_list.append(embedding)
                 persons_counter += 1
-
-    emotion_prediction, emotion_probability = fer.predict_emotions(
-        face, logits=False)
-
+                for emotion in emotions_count.keys():
+                    if (np.max(emotion_probability) > 0.36):
+                        if(emotion == emotion_prediction):
+                            print("incrementou")
+                            emotions_count[emotion] += 1
+                            break
+                for age_option in age_count.keys():
+                    if(ages == age_option):
+                        age_count[age_option] += 1
     if (np.max(emotion_probability) > 0.36):
-        ages = age_classifier(face)
 
         age_text = f'{ages[1:-1]} anos'
         color = emotions[emotion_prediction]['color']
@@ -189,16 +266,73 @@ def process_faces(frame, box, track_id, track_history):
 
     return frame
 
+def salvar_csv(age_count, emotions_count, persons_counter):
+    nome_arquivo = "dados.csv"
+    
+    arquivo_existe = os.path.isfile(nome_arquivo)
+
+    with open(nome_arquivo, mode='a' if arquivo_existe else 'w', newline='') as arquivo_csv:
+        colunas = ['Timestamp'] + list(age_count.keys()) + list(emotions_count.keys()) + ['Total_Pessoas']
+        escritor_csv = csv.DictWriter(arquivo_csv, fieldnames=colunas)
+
+        if not arquivo_existe:
+            escritor_csv.writeheader()
+
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        dados = {'Timestamp': timestamp}
+        dados.update(age_count)
+        dados.update(emotions_count)
+        dados['Total_Pessoas'] = persons_counter
+
+        escritor_csv.writerow(dados)
+        zerar_contadores()
+
+def enviar_email():
+    from_email = "pedropedrosa@lapisco.ifce.edu.br"
+    to_email = "pedrofeijo@lapisco.ifce.edu.br"
+    senha = "@lapisco2024"
+
+    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server.starttls()
+    server.login(from_email, senha)
+
+    msg = MIMEMultipart()
+    msg['From'] = from_email
+    msg['To'] = to_email
+    msg['Subject'] = "Analytics Report"
+
+    filename = "dados.csv"
+    attachment = open(filename, "rb")
+    part = MIMEBase("application", "octet-stream")
+    part.set_payload((attachment).read())
+    encoders.encode_base64(part)
+    part.add_header("Content-Disposition", "attachment; filename= " + filename)
+    msg.attach(part)
+
+    server.send_message(msg)
+    print("E-mail enviado com sucesso para", to_email)
+
+    server.quit()
+    os.rename("dados.csv", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+
+schedule.every().hour.do(enviar_email)
 
 while True:
+    if datetime.datetime.now() - tempo_ultima_salvacao >= intervalo:
+            salvar_csv(age_count, emotions_count, persons_counter)
+            tempo_ultima_salvacao = datetime.datetime.now()
+    schedule.run_pending()
+
     frame = cv2.imread("../stream/frame.jpg")
+    frame = cv2.resize(frame, (640, 480))
     # frame = cv2.resize(frame, None, fx=0.75, fy=0.75)
 
     # Start timer
     new_frame_time = time.time()
     
     # Run YOLOv8 tracking on the frame, persisting tracks between frames
-    results = model.track(frame, persist=True, conf=0.5, verbose=False)
+    results = model.track(frame, persist=True, conf=0.50, verbose=False)
 
     # Get the boxes and track IDs
     boxes = results[0].boxes.xywh.cpu()

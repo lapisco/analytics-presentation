@@ -9,6 +9,7 @@ imutils
 
 ultralytics
 omegaconf
+schedule
 # lap
 
 # face-recognition

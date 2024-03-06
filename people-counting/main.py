@@ -177,7 +177,10 @@ def main():
 
         cvzone.putTextRect(frame, f'Down: {downcount}', (50, 60), 2, 2)
         cvzone.putTextRect(frame, f'Up: {upcount}', (50, 160), 2, 2)
+<<<<<<< HEAD
 
+=======
+>>>>>>> c35fdf1d7fa6306d95734e84cf978c98c5743ee7
 
         # Atualizar o arquivo CSV a cada hora
         current_time = time.time()
