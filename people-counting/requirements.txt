@@ -1,0 +1,6 @@
+opencv-contrib-python==4.7.0.68
+opencv-python==4.7.0.68
+pandas==1.5.2
+ultralytics
+numpy
+cvzone

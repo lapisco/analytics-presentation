@@ -32,15 +32,17 @@ RUN git clone https://github.com/davisking/dlib.git && \
 
 # Copy the face detector model file
 WORKDIR /home/age-emotion-detector/resources
-COPY age_deploy.prototxt age_deploy.prototxt
+
+COPY yolov8n-face.pt yolov8n-face.pt
 COPY age_net.caffemodel age_net.caffemodel
-COPY dlib_face_recognition_resnet_model_v1.dat dlib_face_recognition_resnet_model_v1.dat
-COPY emotionModel.hdf5 emotionModel.hdf5
-COPY opencv_face_detector_uint8.pb opencv_face_detector_uint8.pb
-COPY opencv_face_detector.pbtxt opencv_face_detector.pbtxt
+COPY age_deploy.prototxt age_deploy.prototxt
 COPY shape_predictor_68_face_landmarks.dat shape_predictor_68_face_landmarks.dat
+COPY dlib_face_recognition_resnet_model_v1.dat dlib_face_recognition_resnet_model_v1.dat
+
+COPY facial_emotions.py facial_emotions.py
 
 WORKDIR /home/age-emotion-detector
+
 # Install project requirements
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt

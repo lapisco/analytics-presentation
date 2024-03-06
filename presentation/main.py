@@ -2,14 +2,7 @@ import cv2
 from time import time
 
 IMG_AGE = "../age-emotion-detector/frame.jpg"
-# IMG_FR = "../face-recognition/frame.jpg"
-# IMG_OD = "../object-detector/frame.jpg"
-# IMG_ED = "../ppe-detection/frame.jpg"
-# IMG_OT = "../object-tracking/frame.jpg"
-# IMG_OA = "../ocr-analysis/frame.jpg"
-# IMG_PE = "../pose-estimation/frame.jpg"
-# IMG_PEY = "../pose-estimation-yolo/frame.jpg"
-# IMG_PS = "../person-stay/frame.jpg"
+# IMG_PC = "../people-counting/frame.jpg"
 
 IMG_OVERLAY = "./overlay.png"
 
@@ -24,27 +17,10 @@ if __name__ == "__main__":
         # Start timer
         new_frame_time = time()
 
+        # frame_pc = cv2.imread(IMG_PC)
         frame_age = cv2.imread(IMG_AGE)
-
-        # frame_fr = cv2.imread(IMG_FR)
-
-        # frame_od = cv2.imread(IMG_OD)
-
-        # frame_ed = cv2.imread(IMG_ED)
-
-        # frame_ot = cv2.imread(IMG_OT)
-
-        # frame_oa = cv2.imread(IMG_OA)
-
-        # frame_pe = cv2.imread(IMG_PE)
-
-        # frame_pey = cv2.imread(IMG_PEY)
-
-        # frame_ps = cv2.imread(IMG_PS)
-
         frame_over = cv2.imread(IMG_OVERLAY)
 
-        # frames_ans = [frame_fr, frame_od, frame_ps, frame_ed]
         frames_ans = [frame_age]
 
         for i, frame_an in enumerate(frames_ans):
