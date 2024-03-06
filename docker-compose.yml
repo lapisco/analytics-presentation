@@ -1,18 +1,5 @@
 version: "3.9"
 services:
-  # face_recognition:
-  #   build: ./face-recognition
-  #   dns:
-  #     - 8.8.8.8
-  #   volumes:
-  #     - ./stream:/home/stream
-  #     - ./resources:/home/face-recognition/resources
-  #     - ./face-recognition:/home/face-recognition
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #   runtime: nvidia
-  #   environment:
-  #     - NVIDIA_VISIBLE_DEVICES=all
-
   age_emotion_detector:
     build: ./age-emotion-detector
     dns:
@@ -33,7 +20,6 @@ services:
     volumes:
       - ./stream:/home/stream
       - ./people-counting:/home/people-counting
-      - ./heatmap_images:/home/people-counting/heatmap_images
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
     environment:
