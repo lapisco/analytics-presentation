@@ -158,8 +158,7 @@ def main():
                 df.to_csv('heatmap.csv', index=False)
 
                 #salva o heatmap em png
-                cv2.imwrite(os.path.join(
-                    output_heatmap_path, f'heatmap_{time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))}.png'), HEATMAP)
+                cv2.imwrite(f'heatmap_{time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))}.png', HEATMAP)
 
                 last_increment_time = current_time
 
