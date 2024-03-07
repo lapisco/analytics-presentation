@@ -44,6 +44,7 @@ def main():
 
     # Load initial frame
     initial_frame = cv2.imread("../monitor/frame.jpg")
+    initial_frame = cv2.resize(initial_frame, (840, 560))
     frame_shape = np.shape(initial_frame)
 
     # Get object classes
