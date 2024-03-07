@@ -18,6 +18,7 @@ if __name__ == "__main__":
 
         if frame is not None:
             # TODO: Do frame preprocessing (check if image is black, currupted, etc.)
+            frame = cv2.resize(frame, (1280, 768))
             cv2.imwrite("./frame_temp.jpg", frame)
             os.system("mv frame_temp.jpg frame.jpg")
 
