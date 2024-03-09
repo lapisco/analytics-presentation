@@ -17,11 +17,12 @@ import datetime
 import schedule
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import io
 
 saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
 tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
@@ -113,6 +114,66 @@ ageNet = cv2.dnn.readNet(ageModel, ageProto)
 # init PDF class
 csv_data = None
 
+def plot_sum_of_columns_to_bytes(df, filename, title):
+    if df.empty:
+        print("DataFrame está vazio.")
+        return None
+    
+    # Remove as colunas 'Timestamp' e 'Total_pessoas' do cálculo da soma
+    cols_to_sum = [col for col in df.columns if col not in ['Timestamp', 'Total_pessoas']]
+    
+    # Calcula a soma de cada coluna
+    sum_of_columns = df[cols_to_sum].sum()
+    
+    # Define uma paleta de cores personalizada
+    num_cols = len(sum_of_columns)
+    color_palette = plt.get_cmap('Pastel2')(range(num_cols))
+    
+    # Cria o gráfico de barras
+    plt.figure(figsize=(5, 4))
+    bars = sum_of_columns.plot(kind='bar', color=color_palette)
+    plt.title(f'{title}', fontsize=10)
+
+    plt.xticks(rotation=45, fontsize=6)
+    plt.yticks(fontsize=6) 
+    plt.grid(axis='y')
+    
+    # Adiciona os valores em cima de cada barra
+    for bar in bars.patches:
+        plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.05, round(bar.get_height(), 2), ha='center', va='bottom', fontsize=6)
+    
+    
+    plt.savefig(f"data/{filename}.png", format='png')
+
+
+def plot_time_graph(df, x_column, y_columns, filename):
+    # Converter a coluna de timestamp para o formato datetime
+    df[x_column] = pd.to_datetime(df[x_column])
+
+    # Extrair apenas as horas da coluna de timestamp
+    df['Hora'] = df[x_column].dt.strftime('%H:%M')
+
+    # Cores pastel para os gráficos
+    pastel_colors = ['#B0E0E6']
+
+    # Configurar o gráfico
+    plt.figure(figsize=(5, 4))
+    plt.xticks(rotation=45, fontsize=8)
+    plt.yticks(fontsize=8) 
+    plt.title('Detections per time', fontsize=12)
+
+    # Plotar cada coluna do DataFrame no gráfico com cores pastel
+    for i, column in enumerate(y_columns):
+        plt.plot(df['Hora'], df[column], label=column, color=pastel_colors[i])
+
+    legend_names = {'Total_Pessoas': 'Total Detections'}
+
+    # Adicionar legenda com os nomes personalizados
+    plt.legend(labels=[legend_names.get(col, col) for col in y_columns])
+
+    # Salvar o gráfico como um arquivo PNG
+    plt.tight_layout()  # Para evitar cortes nos rótulos dos eixos
+    plt.savefig(f"data/{filename}.png", format='png')
 
 def zerar_contadores():
     global emotions_count, age_count
@@ -272,7 +333,7 @@ def process_faces(frame, box, track_id, track_history):
 
 
 def salvar_csv(age_count, emotions_count, persons_counter):
-    global csv_data
+    global df
 
     nome_arquivo = "data/dados.csv"
 
@@ -297,90 +358,98 @@ def salvar_csv(age_count, emotions_count, persons_counter):
         escritor_csv.writerow(csv_data)
         zerar_contadores()
 
-        csv_data = pd.DataFrame(csv_data)
-
-
-def export_graph(labels, sizes, title):
-    global csv_data
-    
-    import matplotlib.pyplot as plt
-
-    labels = 'Sadness', 'Neutr', 'Happy'
-    sizes = [50, 20, 80]
-
-    fig, ax = plt.subplots()
-    ax.pie(sizes, labels=labels, autopct='%1.1f%%')
-    ax.set_title(title)
-    
-    plt.savefig()
+    df = pd.read_csv("data/dados.csv")
 
 
 def enviar_email():
-    global csv_data, pdf_report
+    global df, pdf_report
 
-    pdf_report = PDF(pdf_title='Report')
-
-    # if csv_data == None:
-    #     print('[INFO]: CSV data is None')
-    # else:
-    #     try:
-    # from_email = "pedropedrosa@lapisco.ifce.edu.br"
-    # to_email = "pedrofeijo@lapisco.ifce.edu.br"
-    # senha = "@lapisco2024"
-
-    # server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
-    # server.starttls()
-    # server.login(from_email, senha)
-
-    # msg = MIMEMultipart()
-    # msg['From'] = from_email
-    # msg['To'] = to_email
-    # msg['Subject'] = "CSV File Update Facial"
-
-    # body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
-    # msg.attach(MIMEText(body, 'plain'))
+    pdf_report = PDF(pdf_title='IA Recognition Report')
+    pdf_report.add_page()
+    image_w, image_h = 188, 50  # Ajuste as dimensões conforme necessário
+    
+    # Calcular as dimensões da página
+    page_w = pdf_report.w
+    page_h = pdf_report.h
+    
+    # Calcular a posição x e y para centralizar a imagem
+    x = (page_w - image_w) / 2
+    y = (page_h - image_h) / 2
+    
+    # Adicionar a imagem
+    pdf_report.image("data/iracema-merged.png", x, y, w=image_w, h=image_h)
 
     pdf_report.add_page()
-    pdf_report.set_font("Arial", size=12)
-    pdf_report.cell(200, 10, txt=f'Datetime: {s}', ln=True)
-    pdf_report.cell(200, 10, txt=f'Total Detections: {d}', ln=True)
-    pdf_report.cell(200, 10, txt=f'Total Age: {f}', ln=True)
-    pdf_report.cell(200, 10, txt=f'Total Emotions: {g}', ln=True)
-
-    image = export_graph() # ou ler uma imagem
-
-    pdf_report.image(image, w=pdf_report.epw)
-
-    # for key, value in csv_data.items():
-    #     pdf_report.cell(200, 10, txt=f'{key}: {value}', ln=True)
-
-    pdf_report.output(
-        f"data/merda_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.pdf")
-
-    # filename = "data/dados.csv"
-    # attachment = open(filename, "rb")
-    # part = MIMEBase("application", "octet-stream")
-    # part.set_payload((attachment).read())
-    # encoders.encode_base64(part)
-    # part.add_header("Content-Disposition", "attachment; filename= " + filename)
-    # msg.attach(part)
-
-    # server.send_message(msg)
-    # print("E-mail enviado com sucesso para", to_email)
-
-    # server.quit()
-    # os.rename("data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-
-    # csv_data = None
-    # except:
-    #     os.rename(
-    #         "data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-
-    #     csv_data = None
+    pdf_report.set_font("Arial", size=10)
+    pdf_report.cell(200, 5, txt=f"Datetime: {df['Timestamp'].tail(1).values[0]}", ln=True)
+    pdf_report.cell(200, 5, txt=f'\t \t \t \t Detected Ages: {df.iloc[:,1:9].sum().sum()}', ln=True)
+    pdf_report.cell(200, 5, txt=f'\t \t \t \t Detected Emotions: {df.iloc[:,10:-1].sum().sum()}', ln=True)
+    pdf_report.cell(200, 5, txt=f"\t \t \t \t Detected People: {df['Total_Pessoas'].tail(1).values[0]}", ln=True)
+    plot_sum_of_columns_to_bytes(df.iloc[:,1:9], 'age', 'Detected Ages') # ou ler uma imagem
+    plot_sum_of_columns_to_bytes(df.iloc[:,10:-1], 'emotion', 'Detected Emotions') 
+    plot_time_graph(df, 'Timestamp', ['Total_Pessoas'], 'grafico_tempo')
 
 
-intervalo = datetime.timedelta(seconds=15)
-schedule.every(45).seconds.do(enviar_email)
+    pdf_report.image("data/age.png")
+
+    pdf_report.image("data/emotion.png")
+
+    pdf_report.image("data/grafico_tempo.png")
+
+    pdf_name = f"data/report_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pdf"
+    pdf_report.output(pdf_name)
+
+    if df.empty:
+        print('[INFO]: DF data is None')
+    else:
+        try:
+            from_email = "pedropedrosa@lapisco.ifce.edu.br"
+            to_email = "juliomacedochaves@gmail.com"
+            senha = "@lapisco2024"
+
+            server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+            server.starttls()
+            server.login(from_email, senha)
+
+            msg = MIMEMultipart()
+            msg['From'] = from_email
+            msg['To'] = to_email
+            msg['Subject'] = "IA Recognition Report Facial"
+
+            body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
+            msg.attach(MIMEText(body, 'plain'))
+
+
+
+            for key, value in df.items():
+                pdf_report.cell(200, 10, txt=f'{key}: {value}', ln=True)
+
+
+            filename = pdf_name
+            attachment = open(filename, "rb")
+            part = MIMEBase("application", "octet-stream")
+            part.set_payload((attachment).read())
+            encoders.encode_base64(part)
+            part.add_header("Content-Disposition", "attachment; filename= " + filename)
+            msg.attach(part)
+
+            server.send_message(msg)
+            print("E-mail enviado com sucesso para", to_email)
+
+            server.quit()
+            # os.rename(pdf_name, f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+
+            df = None
+        except:
+            # os.rename(
+                # pdf_name, f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+
+            df = None
+
+
+
+intervalo = datetime.timedelta(minutes=15)
+schedule.every(3).hours.do(enviar_email)
 
 while True:
 
@@ -388,7 +457,6 @@ while True:
         salvar_csv(age_count, emotions_count, persons_counter)
         tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
 
-        print(csv_data, '@@@@@@@@@@@@@@@')
 
     schedule.run_pending()
 
