@@ -1,7 +1,7 @@
 import os
 import cv2
 import csv
-import time
+import datetime
 import cvzone
 import numpy as np
 import pandas as pd
@@ -11,15 +11,16 @@ import smtplib
 import datetime
 import pytz
 
-
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
 from lib.tracker.tracker import *
 from lib.heatmap.heatmap import HeatMap
+
 from ultralytics import YOLO
 
+saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
 
 def main():
     saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
@@ -181,6 +182,7 @@ def main():
 
         # Atualizar o arquivo CSV a cada hora
         current_time = datetime.datetime.now(saopaulo_timezone)
+
         if (current_time - last_csv_update_time).total_seconds() >= 15:  # 3600 segundos = 1 hora
             with open(output_csv_path, mode='a', newline='') as file:
                 writer = csv.writer(file)
@@ -201,7 +203,7 @@ def main():
             csv_update_counter += 1
 
             #Email
-            if csv_update_counter == 4:
+            if csv_update_counter == 12:
                 try:
                     # Email setup
                     sender_email = "pedropedrosa@lapisco.ifce.edu.br"
@@ -228,7 +230,7 @@ def main():
                         print("A5")
                     
                     # Attach heatmap CSV file
-                    with open('heatmap.csv', 'rb') as heatmap_file:
+                    with open('data/heatmap.csv', 'rb') as heatmap_file:
                         attachment_heatmap = MIMEApplication(heatmap_file.read(), _subtype="csv")
                         attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'data/heatmap_{current_time.strftime("%Y-%m-%d_%H-%M-%S")}.csv')
                         msg.attach(attachment_heatmap)
@@ -243,6 +245,8 @@ def main():
                         server.sendmail(sender_email, receiver_email, msg.as_string())
                         print("Email enviado")
                 except:
+                    os.rename("data/dados.csv", f"data/dados_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+                    os.rename("data/dados.csv", f"data/heatmap_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
                     print("Falha ao enviar Email")
                     #lógica para salvar csv q não foi enviado
 
