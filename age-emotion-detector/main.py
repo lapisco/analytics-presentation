@@ -253,37 +253,19 @@ def process_faces(frame, box, track_id, track_history):
     face = frame[max(0, tly - padding):min(bry + padding, frame.shape[0] - 1),
                  max(0, tlx - padding):min(brx + padding, frame.shape[1] - 1)]
 
+    emotion_prediction, emotion_probability = fer.predict_emotions(
+        face, logits=False)
+
     faceBox = [tly, bry, tlx, brx]
     embeddings = extract_face_embeddings(frame, faceBox)
     # embeddings = fr.face_encodings(cv2.cvtColor(face, cv2.COLOR_BGR2RGB),
     #                                  boxes, num_jitters=jitters)
     ages = age_classifier(face)
 
-    emotion_prediction, emotion_probability = fer.predict_emotions(
-        face, logits=False)
+    if (np.max(emotion_probability) > 0.36):
 
-    for embedding in embeddings:
-        if len(embeddings_global_list) == 0:
-            embeddings_global_list.append(embedding)
-            persons_counter += 1
-            for emotion in emotions_count.keys():
-                if (np.max(emotion_probability) > 0.36):
-                    if (emotion == emotion_prediction):
-                        emotions_count[emotion] += 1
-                        break
-            for age_option in age_count.keys():
-                if (ages == age_option):
-                    age_count[age_option] += 1
-        else:
-            new_face = True
-            for stored_embedding in embeddings_global_list:
-                distance = euclidean_distance(embedding, stored_embedding)
-                if distance < 0.6:
-                    new_face = False
-                    break
-            if new_face:
-                if len(embeddings_global_list) == max_embeddings:
-                    embeddings_global_list.pop(0)
+        for embedding in embeddings:
+            if len(embeddings_global_list) == 0:
                 embeddings_global_list.append(embedding)
                 persons_counter += 1
                 for emotion in emotions_count.keys():
@@ -294,7 +276,26 @@ def process_faces(frame, box, track_id, track_history):
                 for age_option in age_count.keys():
                     if (ages == age_option):
                         age_count[age_option] += 1
-    if (np.max(emotion_probability) > 0.36):
+            else:
+                new_face = True
+                for stored_embedding in embeddings_global_list:
+                    distance = euclidean_distance(embedding, stored_embedding)
+                    if distance < 0.6:
+                        new_face = False
+                        break
+                if new_face:
+                    if len(embeddings_global_list) == max_embeddings:
+                        embeddings_global_list.pop(0)
+                    embeddings_global_list.append(embedding)
+                    persons_counter += 1
+                    for emotion in emotions_count.keys():
+                        if (np.max(emotion_probability) > 0.36):
+                            if (emotion == emotion_prediction):
+                                emotions_count[emotion] += 1
+                                break
+                    for age_option in age_count.keys():
+                        if (ages == age_option):
+                            age_count[age_option] += 1
 
         age_text = f'{ages[1:-1]} anos'
         color = emotions[emotion_prediction]['color']
@@ -437,12 +438,12 @@ def enviar_email():
             print("E-mail enviado com sucesso para", to_email)
 
             server.quit()
-            # os.rename(pdf_name, f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+            os.rename(pdf_name, f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.pdf")
 
             df = None
         except:
-            # os.rename(
-                # pdf_name, f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+            os.rename(
+                pdf_name, f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.pdf")
 
             df = None
 
@@ -450,6 +451,9 @@ def enviar_email():
 
 intervalo = datetime.timedelta(minutes=15)
 schedule.every(3).hours.do(enviar_email)
+
+if os.path.exists("data/dados.csv"):
+    os.remove("data/dados.csv")
 
 while True:
 

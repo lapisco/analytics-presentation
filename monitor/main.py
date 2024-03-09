@@ -2,7 +2,7 @@ import os
 from time import time
 import cv2
 
-STREAM = 0
+STREAM = 'teste.mp4'
 IMAGE_SHOW = False
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"

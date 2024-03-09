@@ -9,10 +9,13 @@ os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 
 if __name__ == "__main__":
     while True:
-        if STREAM[:5] == "rtsp": # Cameras streamings
-            cap = cv2.VideoCapture(STREAM, cv2.CAP_FFMPEG)
-            cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
-        else: cap = cv2.VideoCapture(STREAM) # Other streamings
+        try:
+            if STREAM[:5] == "rtsp": # Cameras streamings
+                cap = cv2.VideoCapture(STREAM, cv2.CAP_FFMPEG)
+                cap.set(cv2.CAP_PROP_BUFFERSIZE, 2)
+            else: cap = cv2.VideoCapture(STREAM) # Other streamings
+        except:
+            cap = cv2.VideoCapture(STREAM)
 
         print("stream")
 

@@ -45,7 +45,7 @@ def plot_time_graph(df, x_column, y_columns, filename, title):
     for i, column in enumerate(y_columns):
         plt.plot(df['Hora'], df[column], label=column, color=pastel_colors[i])
 
-    legend_names = {'Saiu': 'Person out', 'Person in': 'Entered', 'Ocupação': 'Capacity'}
+    legend_names = {'Saiu': 'Person out', 'Entrou': 'Person in', 'Ocupação': 'Capacity'}
 
     # Adicionar legenda com os nomes personalizados
     plt.legend(labels=[legend_names.get(col, col) for col in y_columns])
@@ -205,6 +205,8 @@ def main():
 
                 last_increment_time = current_time
 
+                accumulated_image = np.zeros(
+                    (frame_shape[0], frame_shape[1]), dtype=np.uint64)
         cv2.line(frame, (0, cy1), (frame_shape[1], cy1), (0, 255, 0), 2)
         cv2.line(frame, (0, cy2), (frame_shape[1], cy2), (0, 255, 255), 2)
 
