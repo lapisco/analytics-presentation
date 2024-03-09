@@ -324,15 +324,24 @@ def main():
                 pdf_name = f"data/report_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pdf"
                 pdf_report.output(pdf_name)
                 try:
-                    # Email setup
+                    destinatarios = [
+                        "Tiago.fontes@huawei.com",
+                        "Paulr.rothen@huawei.com",
+                        "brendhacanafistula@institutoiracema.org.br",
+                        "Leonardo.sdsilva@telefonica.com",
+                        "vinicius.rsilva@telefonica.com",
+                        "fernando.fsilva@telefonica.com",
+                        "matheus.blanco@telefonica.com",
+                        "ramon.isantos@telefonica.com"
+                    ]
                     sender_email = "pedropedrosa@lapisco.ifce.edu.br"
                     sender_password = "@lapisco2024"
-                    receiver_email = "juliomacedochaves@gmail.com"
+                    receiver_emails = destinatarios
 
                     print("A1")
                     msg = MIMEMultipart()
                     msg['From'] = sender_email
-                    msg['To'] = receiver_email
+                    msg['To'] = ", ".join(receiver_emails)
                     msg['Subject'] = "IA People Counting Report"
                     print("A2")
                     # Add text message to email body
@@ -340,7 +349,7 @@ def main():
                     msg.attach(MIMEText(body, 'plain'))
                     print("A3")
 
-                    # Attach CSV file
+                    # Attach PDF file
                     with open(pdf_name, 'rb') as pdf_file:
                         print("A4")
                         attachment = MIMEApplication(pdf_file.read(), _subtype="pdf")
@@ -361,12 +370,15 @@ def main():
                         print("A7")
                         server.login(sender_email, sender_password)
                         print("A8")
-                        server.sendmail(sender_email, receiver_email, msg.as_string())
+                        server.sendmail(sender_email, receiver_emails, msg.as_string())
                         print("Email enviado")
-                except:
-                    os.rename("data/dados.csv", f"data/dados_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-                    os.rename("data/heatmap.csv", f"data/heatmap_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-                    print("Falha ao enviar Email")
+                except Exception as e:
+                    print(f"Falha ao enviar Email: {str(e)}")
+                    for destinatario in destinatarios:
+                        os.rename("data/dados.csv", f"data/dados_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+                        os.rename("data/heatmap.csv", f"data/heatmap_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+                        print(f"Falha ao enviar Email para {destinatario}")
+
                     #lógica para salvar csv q não foi enviado
 
                 # Reset CSV 

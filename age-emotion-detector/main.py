@@ -405,8 +405,16 @@ def enviar_email():
     else:
         try:
             from_email = "pedropedrosa@lapisco.ifce.edu.br"
-            destinatarios = ["juliomacedochaves@gmail.com", "julio.chaves@lapisco.ifce.edu.br"]
-            to_email = "juliomacedochaves@gmail.com"
+            destinatarios = [
+                "Tiago.fontes@huawei.com",
+                "Paulr.rothen@huawei.com",
+                "brendhacanafistula@institutoiracema.org.br",
+                "Leonardo.sdsilva@telefonica.com",
+                "vinicius.rsilva@telefonica.com",
+                "fernando.fsilva@telefonica.com",
+                "matheus.blanco@telefonica.com",
+                "ramon.isantos@telefonica.com"
+            ]
             senha = "@lapisco2024"
 
             server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
@@ -436,7 +444,6 @@ def enviar_email():
             msg.attach(part)
 
             server.send_message(msg)
-            print("E-mail enviado com sucesso para", to_email)
 
             server.quit()
             os.rename(pdf_name, f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.pdf")
