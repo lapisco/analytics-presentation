@@ -23,7 +23,6 @@ import pytz
 saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
 tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
 
-
 emotions_count = {
     "Anger": 0,
     "Contempt": 0,
