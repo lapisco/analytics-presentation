@@ -24,6 +24,7 @@ COPY ./resources/yolov8s.pt /home/people-couting/resources/yolov8s.pt
 
 COPY ./lib/heatmap/heatmap.py ./lib/heatmap/heatmap.py
 COPY ./lib/tracker/tracker.py ./lib/tracker/tracker.py
+COPY ./lib/pdf_report/pdf_report.py ./lib/pdf_report/pdf_report.py
 
 # Install project requirements
 COPY requirements.txt requirements.txt
