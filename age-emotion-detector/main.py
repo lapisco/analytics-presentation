@@ -1,24 +1,26 @@
 from ultralytics import YOLO
 from functools import partial
 from collections import defaultdict
-from lib.facial_emotions.facial_emotions import HSEmotionRecognizer
 from concurrent.futures import ThreadPoolExecutor
+
+from pdf_report import PDF
+from lib.facial_emotions.facial_emotions import HSEmotionRecognizer
 
 import os
 import cv2
 import time
-import dlib
 import csv
-import numpy as np
-import datetime
-
+import dlib
+import pytze2
 import smtplib
+import datetime
 import schedule
+import numpy as np
+
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
-import pytz
 
 saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
 tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
@@ -106,6 +108,9 @@ ageList = ['(0-2)', '(4-6)', '(8-12)', '(15-20)',
 
 ageNet = cv2.dnn.readNet(ageModel, ageProto)
 
+# init PDF class
+csv_data = None
+pdf_report = PDF(pdf_title='Report')
 
 def zerar_contadores():
     global emotions_count, age_count
@@ -268,6 +273,8 @@ def process_faces(frame, box, track_id, track_history):
     return frame
 
 def salvar_csv(age_count, emotions_count, persons_counter):
+    global csv_data
+    
     nome_arquivo = "data/dados.csv"
     
     arquivo_existe = os.path.isfile(nome_arquivo)
@@ -281,55 +288,67 @@ def salvar_csv(age_count, emotions_count, persons_counter):
 
         timestamp = datetime.datetime.now(saopaulo_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
-        dados = {'Timestamp': timestamp}
-        dados.update(age_count)
-        dados.update(emotions_count)
-        dados['Total_Pessoas'] = persons_counter
+        csv_data = {'Timestamp': timestamp}
+        csv_data.update(age_count)
+        csv_data.update(emotions_count)
+        csv_data['Total_Pessoas'] = persons_counter
 
-        escritor_csv.writerow(dados)
+        escritor_csv.writerow(csv_data)
         zerar_contadores()
 
 def enviar_email():
-    try:
-        from_email = "pedropedrosa@lapisco.ifce.edu.br"
-        to_email = "pedrofeijo@lapisco.ifce.edu.br"
-        senha = "@lapisco2024"
+    global csv_data
+    
+    if csv_data == None:
+        print('[INFO]: CSV data is None')
+    else:
+        try:
+            # from_email = "pedropedrosa@lapisco.ifce.edu.br"
+            # to_email = "pedrofeijo@lapisco.ifce.edu.br"
+            # senha = "@lapisco2024"
 
-        server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
-        server.starttls()
-        server.login(from_email, senha)
+            # server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+            # server.starttls()
+            # server.login(from_email, senha)
 
-        msg = MIMEMultipart()
-        msg['From'] = from_email
-        msg['To'] = to_email
-        msg['Subject'] = "CSV File Update Facial"
+            # msg = MIMEMultipart()
+            # msg['From'] = from_email
+            # msg['To'] = to_email
+            # msg['Subject'] = "CSV File Update Facial"
 
-        body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
-        msg.attach(MIMEText(body, 'plain'))
+            # body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
+            # msg.attach(MIMEText(body, 'plain'))
 
-        filename = "data/dados.csv"
-        attachment = open(filename, "rb")
-        part = MIMEBase("application", "octet-stream")
-        part.set_payload((attachment).read())
-        encoders.encode_base64(part)
-        part.add_header("Content-Disposition", "attachment; filename= " + filename)
-        msg.attach(part)
+            print(csv_data)
+            
+            # filename = "data/dados.csv"
+            # attachment = open(filename, "rb")
+            # part = MIMEBase("application", "octet-stream")
+            # part.set_payload((attachment).read())
+            # encoders.encode_base64(part)
+            # part.add_header("Content-Disposition", "attachment; filename= " + filename)
+            # msg.attach(part)
 
-        server.send_message(msg)
-        print("E-mail enviado com sucesso para", to_email)
+            # server.send_message(msg)
+            # print("E-mail enviado com sucesso para", to_email)
 
-        server.quit()
-        os.rename("data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-    except:
-        os.rename("data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+            # server.quit()
+            # os.rename("data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+            
+            csv_data = None
+        except:
+            os.rename("data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+            
+            csv_data = None
 
-intervalo = datetime.timedelta(minutes=15)
-schedule.every(3).hours.do(enviar_email)
+intervalo = datetime.timedelta(seconds=5)
+schedule.every(15).seconds.do(enviar_email)
 
 while True:
     if datetime.datetime.now(saopaulo_timezone) - tempo_ultima_salvacao >= intervalo:
-            salvar_csv(age_count, emotions_count, persons_counter)
-            tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
+        salvar_csv(age_count, emotions_count, persons_counter)
+        tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
+        
     schedule.run_pending()
 
     frame = cv2.imread("../stream/frame.jpg")
