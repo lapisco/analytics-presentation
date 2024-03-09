@@ -1,25 +1,26 @@
 version: "3.9"
 services:
-  # age_emotion_detector:
-  #   build: ./age-emotion-detector
-  #   dns:
-  #     - 8.8.8.8
-  #   restart: always
-  #   volumes:
-  #     - ./stream:/home/stream
-  #     #- ./resources:/home/age-emotion-detector/resources
-  #     - ./age-emotion-detector:/home/age-emotion-detector
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #   runtime: nvidia
-  #   environment:
-  #     - NVIDIA_VISIBLE_DEVICES=all
-  #   depends_on:
-  #     - stream
+  age_emotion_detector:
+    build: ./age-emotion-detector
+    dns:
+      - 8.8.8.8
+    restart: unless-stopped
+    volumes:
+      - ./stream:/home/stream
+      #- ./resources:/home/age-emotion-detector/resources
+      - ./age-emotion-detector:/home/age-emotion-detector
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+    depends_on:
+      - stream
     
   people_counting:
     build: ./people-counting
     dns:
       - 8.8.8.8
+    restart: unless-stopped
     volumes:
       - ./monitor:/home/monitor
       - ./people-counting:/home/people-counting
@@ -30,24 +31,22 @@ services:
     depends_on:
       - monitor
 
-  # stream:
-  #   build: ./stream
-  #   volumes:
-  #     - ./stream:/home/stream
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #   devices:
-  #     - "/dev/video0:/dev/video0"
-  #     - "/dev/video1:/dev/video1"
-  #     # - "/dev/video2:/dev/video2"
-  #     # - "/dev/video3:/dev/video3"
+  stream:
+    build: ./stream
+    restart: unless-stopped
+    volumes:
+      - ./stream:/home/stream
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    devices:
+      - "/dev/video0:/dev/video0"
+      - "/dev/video1:/dev/video1"
 
   monitor:
     build: ./monitor
+    restart: unless-stopped
     volumes:
       - ./monitor:/home/monitor
       - /tmp/.X11-unix:/tmp/.X11-unix
     devices:
       - "/dev/video0:/dev/video0"
       - "/dev/video1:/dev/video1"
-      # - "/dev/video2:/dev/video2"
-      # - "/dev/video3:/dev/video3"
