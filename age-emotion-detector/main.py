@@ -450,8 +450,8 @@ def enviar_email():
 
 
 
-intervalo = datetime.timedelta(seconds=5)
-schedule.every(15).seconds.do(enviar_email)
+intervalo = datetime.timedelta(minutes=15)
+schedule.every(3).hours.do(enviar_email)
 
 if os.path.exists("data/dados.csv"):
     os.remove("data/dados.csv")
