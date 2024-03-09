@@ -45,7 +45,7 @@ def plot_time_graph(df, x_column, y_columns, filename, title):
     for i, column in enumerate(y_columns):
         plt.plot(df['Hora'], df[column], label=column, color=pastel_colors[i])
 
-    legend_names = {'Saiu': 'Lefted', 'Entrou': 'Entered', 'Ocupação': 'Capacity'}
+    legend_names = {'Saiu': 'Person out', 'Person in': 'Entered', 'Ocupação': 'Capacity'}
 
     # Adicionar legenda com os nomes personalizados
     plt.legend(labels=[legend_names.get(col, col) for col in y_columns])
