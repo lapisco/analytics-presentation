@@ -405,6 +405,7 @@ def enviar_email():
     else:
         try:
             from_email = "pedropedrosa@lapisco.ifce.edu.br"
+            destinatarios = ["juliomacedochaves@gmail.com", "julio.chaves@lapisco.ifce.edu.br"]
             to_email = "juliomacedochaves@gmail.com"
             senha = "@lapisco2024"
 
@@ -414,7 +415,7 @@ def enviar_email():
 
             msg = MIMEMultipart()
             msg['From'] = from_email
-            msg['To'] = to_email
+            msg['To'] = ", ".join(destinatarios)
             msg['Subject'] = "IA Recognition Report Facial"
 
             body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
@@ -449,8 +450,8 @@ def enviar_email():
 
 
 
-intervalo = datetime.timedelta(minutes=15)
-schedule.every(3).hours.do(enviar_email)
+intervalo = datetime.timedelta(seconds=5)
+schedule.every(15).seconds.do(enviar_email)
 
 if os.path.exists("data/dados.csv"):
     os.remove("data/dados.csv")
