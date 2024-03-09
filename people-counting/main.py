@@ -14,27 +14,27 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
-from tracker import *
-from heatmap import HeatMap
+from lib.tracker import *
+from lib.heatmap import HeatMap
 from ultralytics import YOLO
 
 
 def main():
 #excluir csv
-    if os.path.exists('./dados.csv'):
-        os.remove('./dados.csv')
+    if os.path.exists('data/dados.csv'):
+        os.remove('data/dados.csv')
     else:
         pass
 
 #excluir csv2
-    if os.path.exists('./heatmap.csv'):
-        os.remove('./heatmap.csv')
+    if os.path.exists('data/heatmap.csv'):
+        os.remove('data/heatmap.csv')
     else:
         pass
 
     # Load model
     verbose = False
-    model = YOLO('./yolov8s.pt')
+    model = YOLO('./resources/yolov8s.pt')
 
     # Load Tracker class
     tracker = Tracker()
@@ -48,7 +48,7 @@ def main():
     frame_shape = np.shape(initial_frame)
 
     # Get object classes
-    file = open('./coco.names', 'r')
+    file = open('./resources/coco.names', 'r')
     data = file.read()
     class_list = data.split('\n')
 
@@ -70,8 +70,8 @@ def main():
     accumulated_image = np.zeros(
         (frame_shape[0], frame_shape[1]), dtype=np.uint64)
 
-    output_heatmap_path = './heatmap_images'
-    output_csv_path = './dados.csv'
+    output_heatmap_path = 'data/heatmap_images'
+    output_csv_path = 'data/dados.csv'
 
     time_to_save_heatmap = 15  # in seconds
     last_increment_time = time.time()
@@ -156,10 +156,10 @@ def main():
 
                 #transforma a imagem para o tipo panda dataframe
                 df = pd.DataFrame(accumulated_image)
-                df.to_csv('heatmap.csv', index=False)
+                df.to_csv('data/heatmap.csv', index=False)
 
                 #salva o heatmap em png
-                cv2.imwrite(f'heatmap_{time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))}.png', HEATMAP)
+                cv2.imwrite(f'data/heatmap_{time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))}.png', HEATMAP)
 
                 last_increment_time = current_time
 
@@ -225,9 +225,9 @@ def main():
                         print("A5")
                     
                     # Attach heatmap CSV file
-                    with open('heatmap.csv', 'rb') as heatmap_file:
+                    with open('data/heatmap.csv', 'rb') as heatmap_file:
                         attachment_heatmap = MIMEApplication(heatmap_file.read(), _subtype="csv")
-                        attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'heatmap_{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
+                        attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'data/heatmap_{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
                         msg.attach(attachment_heatmap)
 
                     # Connect to the SMTP server and send email

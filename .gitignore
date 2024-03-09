@@ -2,7 +2,6 @@
 *.cfg
 *.data
 *.name
-*resources*
 *.jpg
 *.jpeg
 *.pickle
