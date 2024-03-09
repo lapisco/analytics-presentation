@@ -278,7 +278,7 @@ def process_faces(frame, box, track_id, track_history):
             new_face = True
             for stored_embedding in embeddings_global_list:
                 distance = euclidean_distance(embedding, stored_embedding)
-                if distance < 0.4:
+                if distance < 0.6:
                     new_face = False
                     break
             if new_face:
@@ -487,14 +487,14 @@ while True:
     prev_frame_time = time.time()
     fps = 1/(prev_frame_time-new_frame_time)
 
-    cv2.putText(frame, "FPS: {:.2f}".format(fps), (5, 25), font,
-                1, (255, 0, 0), 1, cv2.LINE_AA)
+    # cv2.putText(frame, "FPS: {:.2f}".format(fps), (5, 25), font,
+    #             1, (255, 0, 0), 1, cv2.LINE_AA)
 
     text = f"Visitantes: {persons_counter}"
     text_size = cv2.getTextSize(text, font, 1, 1)[0]
     text_width, text_height = text_size[0], text_size[1]
     text_x = (frame.shape[1] - text_width) // 2
-    cv2.putText(frame, text, (text_x, 25), font,
+    cv2.putText(frame, text, (5, 25), font,
                 1, (255, 0, 0), 1, cv2.LINE_AA)
 
     cv2.imwrite("./frame_temp.jpg", frame)
