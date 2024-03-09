@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /home/age-emotion-detector
 COPY ./lib/sort/sort.py ./lib/sort/sort.py
+COPY ./lib/facial_emotions/facial_emotions.py ./lib/facial_emotions/facial_emotions.py
 
 # Compile DLIB
 RUN git clone https://github.com/davisking/dlib.git && \
@@ -33,13 +34,11 @@ RUN git clone https://github.com/davisking/dlib.git && \
 # Copy the face detector model file
 WORKDIR /home/age-emotion-detector/resources
 
-COPY yolov8n-face.pt yolov8n-face.pt
-COPY age_net.caffemodel age_net.caffemodel
-COPY age_deploy.prototxt age_deploy.prototxt
-COPY shape_predictor_68_face_landmarks.dat shape_predictor_68_face_landmarks.dat
-COPY dlib_face_recognition_resnet_model_v1.dat dlib_face_recognition_resnet_model_v1.dat
-
-COPY facial_emotions.py facial_emotions.py
+COPY ./resources/yolov8n-face.pt /home/age-emotion-detector/resources/yolov8n-face.pt
+COPY ./resources/age_net.caffemodel /home/age-emotion-detector/resources/age_net.caffemodel
+COPY ./resources/age_deploy.prototxt /home/age-emotion-detector/resources/age_deploy.prototxt
+COPY ./resources/shape_predictor_68_face_landmarks.dat /home/age-emotion-detector/resources/shape_predictor_68_face_landmarks.dat
+COPY ./resources/dlib_face_recognition_resnet_model_v1.dat /home/age-emotion-detector/resources/dlib_face_recognition_resnet_model_v1.dat
 
 WORKDIR /home/age-emotion-detector
 

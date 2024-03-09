@@ -1,7 +1,7 @@
 from ultralytics import YOLO
 from functools import partial
 from collections import defaultdict
-from facial_emotions import HSEmotionRecognizer
+from lib.facial_emotions.facial_emotions import HSEmotionRecognizer
 from concurrent.futures import ThreadPoolExecutor
 
 import os
@@ -18,8 +18,11 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import pytz
 
-tempo_ultima_salvacao = datetime.datetime.now()
+saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
+tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
+
 
 emotions_count = {
     "Anger": 0,
@@ -55,7 +58,7 @@ emotions = {
         "color": (40, 52, 155)
     },
     "Fear": {
-        "color": (23, 164, 28)
+        "color": (128, 0, 128)
     },
     "Happiness": {
         "color": (88, 158, 38)
@@ -74,14 +77,14 @@ emotions = {
 
 
 # Load the YOLOv8 model
-model = YOLO('yolov8n-face.pt')
+model = YOLO('resources/yolov8n-face.pt')
 
 model_name = 'enet_b0_8_best_afew'
 fer = HSEmotionRecognizer(model_name=model_name)
 
-predictor = dlib.shape_predictor("./shape_predictor_68_face_landmarks.dat")
+predictor = dlib.shape_predictor("resources/shape_predictor_68_face_landmarks.dat")
 facial_recognition_model = dlib.face_recognition_model_v1(
-    "./dlib_face_recognition_resnet_model_v1.dat")
+    "resources/dlib_face_recognition_resnet_model_v1.dat")
 
 jitters = 11
 max_embeddings = 10
@@ -96,8 +99,8 @@ track_history = defaultdict(lambda: [])
 track_start_times = defaultdict(lambda: 0)
 
 MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
-ageProto = "./age_deploy.prototxt"
-ageModel = "./age_net.caffemodel"
+ageProto = "resources/age_deploy.prototxt"
+ageModel = "resources/age_net.caffemodel"
 ageList = ['(0-2)', '(4-6)', '(8-12)', '(15-20)',
            '(25-32)', '(38-43)', '(48-53)', '(60-100)']
 
@@ -178,7 +181,6 @@ def process_faces(frame, box, track_id, track_history):
         track.pop(0)
 
     # Crop and store the detected face
-
     tly, bry, tlx, brx = int(y - h/2), int(y + h/2), int(x - w/2), int(x + w/2)
     face = frame[max(0, tly - padding):min(bry + padding, frame.shape[0] - 1),
                  max(0, tlx - padding):min(brx + padding, frame.shape[1] - 1)]
@@ -266,7 +268,7 @@ def process_faces(frame, box, track_id, track_history):
     return frame
 
 def salvar_csv(age_count, emotions_count, persons_counter):
-    nome_arquivo = "dados.csv"
+    nome_arquivo = "data/dados.csv"
     
     arquivo_existe = os.path.isfile(nome_arquivo)
 
@@ -277,7 +279,7 @@ def salvar_csv(age_count, emotions_count, persons_counter):
         if not arquivo_existe:
             escritor_csv.writeheader()
 
-        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        timestamp = datetime.datetime.now(saopaulo_timezone).strftime("%Y-%m-%d %H:%M:%S")
 
         dados = {'Timestamp': timestamp}
         dados.update(age_count)
@@ -305,7 +307,7 @@ def enviar_email():
         body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
         msg.attach(MIMEText(body, 'plain'))
 
-        filename = "dados.csv"
+        filename = "data/dados.csv"
         attachment = open(filename, "rb")
         part = MIMEBase("application", "octet-stream")
         part.set_payload((attachment).read())
@@ -317,17 +319,17 @@ def enviar_email():
         print("E-mail enviado com sucesso para", to_email)
 
         server.quit()
-        os.rename("dados.csv", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+        os.rename("data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
     except:
-        os.rename("dados.csv", f"{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+        os.rename("data/dados.csv", f"data/{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
 
-intervalo = datetime.timedelta(minutes=1)
-schedule.every().minute.do(enviar_email)
+intervalo = datetime.timedelta(minutes=15)
+schedule.every(3).hours.do(enviar_email)
 
 while True:
-    if datetime.datetime.now() - tempo_ultima_salvacao >= intervalo:
+    if datetime.datetime.now(saopaulo_timezone) - tempo_ultima_salvacao >= intervalo:
             salvar_csv(age_count, emotions_count, persons_counter)
-            tempo_ultima_salvacao = datetime.datetime.now()
+            tempo_ultima_salvacao = datetime.datetime.now(saopaulo_timezone)
     schedule.run_pending()
 
     frame = cv2.imread("../stream/frame.jpg")

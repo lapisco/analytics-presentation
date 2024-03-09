@@ -6,7 +6,7 @@ services:
       - 8.8.8.8
     volumes:
       - ./stream:/home/stream
-      - ./resources:/home/age-emotion-detector/resources
+      #- ./resources:/home/age-emotion-detector/resources
       - ./age-emotion-detector:/home/age-emotion-detector
       - /tmp/.X11-unix:/tmp/.X11-unix
     runtime: nvidia
