@@ -11,9 +11,10 @@ import smtplib
 import datetime
 import pytz
 
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
 from lib.tracker.tracker import *
 from lib.heatmap.heatmap import HeatMap
@@ -324,6 +325,8 @@ def main():
                 pdf_name = f"data/report_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.pdf"
                 pdf_report.output(pdf_name)
                 try:
+                    from_email = "pedropedrosa@lapisco.ifce.edu.br"
+
                     destinatarios = [
                         "Tiago.fontes@huawei.com",
                         "Paulr.rothen@huawei.com",
@@ -334,50 +337,37 @@ def main():
                         "matheus.blanco@telefonica.com",
                         "ramon.isantos@telefonica.com"
                     ]
-                    sender_email = "pedropedrosa@lapisco.ifce.edu.br"
-                    sender_password = "@lapisco2024"
-                    receiver_emails = destinatarios
+                    senha = "@lapisco2024"
 
-                    print("A1")
+                    server = smtplib.SMTP("smtp.gmail.com", 587, timeout=10)
+                    server.starttls()
+                    server.login(from_email, senha)
+
                     msg = MIMEMultipart()
-                    msg['From'] = sender_email
-                    msg['To'] = ", ".join(receiver_emails)
-                    msg['Subject'] = "IA People Counting Report"
-                    print("A2")
-                    # Add text message to email body
-                    body = "Olá,\n\nSegue relatório(s) referente(s) ao mapa de calor do local e/ou presença do público.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
+                    msg['From'] = from_email
+                    msg['To'] = ", ".join(destinatarios)
+                    msg['Subject'] = "IA People Report"
+
+                    body = "Olá,\n\nSegue relatório(s) referente(s) aos dados registrados pelos analíticos faciais durante os últimos 15 minutos.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
                     msg.attach(MIMEText(body, 'plain'))
-                    print("A3")
 
-                    # Attach PDF file
-                    with open(pdf_name, 'rb') as pdf_file:
-                        print("A4")
-                        attachment = MIMEApplication(pdf_file.read(), _subtype="pdf")
-                        attachment.add_header('Content-Disposition', 'attachment', filename=f'data/{current_time.strftime("%Y-%m-%d_%H-%M-%S")}.pdf')
-                        msg.attach(attachment)
-                        print("A5")
-                    
-                    # Attach heatmap CSV file
-                    with open('data/heatmap.csv', 'rb') as heatmap_file:
-                        attachment_heatmap = MIMEApplication(heatmap_file.read(), _subtype="csv")
-                        attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'data/heatmap_{current_time.strftime("%Y-%m-%d_%H-%M-%S")}.csv')
-                        msg.attach(attachment_heatmap)
 
-                    # Connect to the SMTP server and send email
-                    with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as server:
-                        print("A6")
-                        server.starttls()
-                        print("A7")
-                        server.login(sender_email, sender_password)
-                        print("A8")
-                        server.sendmail(sender_email, receiver_emails, msg.as_string())
-                        print("Email enviado")
-                except Exception as e:
-                    print(f"Falha ao enviar Email: {str(e)}")
-                    for destinatario in destinatarios:
-                        os.rename("data/dados.csv", f"data/dados_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-                        os.rename("data/heatmap.csv", f"data/heatmap_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
-                        print(f"Falha ao enviar Email para {destinatario}")
+                    filename = pdf_name
+                    attachment = open(filename, "rb")
+                    part = MIMEBase("application", "octet-stream")
+                    part.set_payload((attachment).read())
+                    encoders.encode_base64(part)
+                    part.add_header("Content-Disposition", "attachment; filename= " + filename)
+                    msg.attach(part)
+
+                    server.send_message(msg)
+
+                    server.quit()
+
+  
+                except:
+                    os.rename("data/dados.csv", f"data/dados_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
+                    os.rename("data/heatmap.csv", f"data/heatmap_{datetime.datetime.now(saopaulo_timezone).strftime('%Y-%m-%d_%H-%M-%S')}.csv")
 
                     #lógica para salvar csv q não foi enviado
 
