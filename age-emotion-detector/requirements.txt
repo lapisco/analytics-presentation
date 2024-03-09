@@ -6,6 +6,7 @@ scipy
 filterpy
 # tensorflow==2.7.0
 imutils
+matplotlib
 
 ultralytics
 omegaconf
@@ -17,3 +18,6 @@ schedule
 hsemotion
 hsemotion-onnx
 # timm==0.4.5
+
+fpdf
+pandas

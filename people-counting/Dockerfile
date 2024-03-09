@@ -22,8 +22,8 @@ WORKDIR /home/people-counting
 COPY ./resources/coco.names  /home/people-couting/resources/coco.names
 COPY ./resources/yolov8s.pt /home/people-couting/resources/yolov8s.pt
 
-COPY ./lib/heatmap.py ./lib/heatmap.py
-COPY ./lib/tracker.py ./lib/tracker.py
+COPY ./lib/heatmap/heatmap.py ./lib/heatmap/heatmap.py
+COPY ./lib/tracker/tracker.py ./lib/tracker/tracker.py
 
 # Install project requirements
 COPY requirements.txt requirements.txt

@@ -42,6 +42,8 @@ COPY ./resources/dlib_face_recognition_resnet_model_v1.dat /home/age-emotion-det
 
 WORKDIR /home/age-emotion-detector
 
+COPY pdf_report.py pdf_report.py
+
 # Install project requirements
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt

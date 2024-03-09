@@ -8,28 +8,31 @@ import pandas as pd
 import csv
 import matplotlib.pyplot as plt
 import smtplib
+import datetime
 import pytz
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
-from lib.tracker import *
-from lib.heatmap import HeatMap
+from lib.tracker.tracker import *
+from lib.heatmap.heatmap import HeatMap
+
 from ultralytics import YOLO
 
 saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
 
 def main():
+    saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
 #excluir csv
-    if os.path.exists('data/dados.csv'):
-        os.remove('data/dados.csv')
+    if os.path.exists('./data/dados.csv'):
+        os.remove('./data/dados.csv')
     else:
         pass
 
 #excluir csv2
-    if os.path.exists('data/heatmap.csv'):
-        os.remove('data/heatmap.csv')
+    if os.path.exists('./data/heatmap.csv'):
+        os.remove('./data/heatmap.csv')
     else:
         pass
 
@@ -71,10 +74,10 @@ def main():
     accumulated_image = np.zeros(
         (frame_shape[0], frame_shape[1]), dtype=np.uint64)
 
-    output_heatmap_path = 'data/heatmap_images'
-    output_csv_path = 'data/dados.csv'
+    output_heatmap_path = './data/heatmap_images'
+    output_csv_path = './data/dados.csv'
 
-    time_to_save_heatmap = 900  # in seconds
+    time_to_save_heatmap = 15  # in seconds
     last_increment_time = datetime.datetime.now(saopaulo_timezone)
     last_csv_update_time = datetime.datetime.now(saopaulo_timezone)
 
@@ -179,7 +182,8 @@ def main():
 
         # Atualizar o arquivo CSV a cada hora
         current_time = datetime.datetime.now(saopaulo_timezone)
-        if (current_time - last_csv_update_time).total_seconds() >= 900:  # 3600 segundos = 1 hora
+
+        if (current_time - last_csv_update_time).total_seconds() >= 15:  # 3600 segundos = 1 hora
             with open(output_csv_path, mode='a', newline='') as file:
                 writer = csv.writer(file)
 
