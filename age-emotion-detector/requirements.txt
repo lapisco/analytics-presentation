@@ -17,3 +17,6 @@ schedule
 hsemotion
 hsemotion-onnx
 # timm==0.4.5
+
+fpdf
+pandas

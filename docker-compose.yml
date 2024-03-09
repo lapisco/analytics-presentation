@@ -4,6 +4,7 @@ services:
     build: ./age-emotion-detector
     dns:
       - 8.8.8.8
+    restart: always
     volumes:
       - ./stream:/home/stream
       #- ./resources:/home/age-emotion-detector/resources
@@ -15,19 +16,19 @@ services:
     depends_on:
       - stream
     
-  people_counting:
-    build: ./people-counting
-    dns:
-      - 8.8.8.8
-    volumes:
-      - ./monitor:/home/monitor
-      - ./people-counting:/home/people-counting
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    runtime: nvidia
-    environment:
-      - NVIDIA_VISIBLE_DEVICES=all
-    depends_on:
-      - monitor
+  # people_counting:
+  #   build: ./people-counting
+  #   dns:
+  #     - 8.8.8.8
+  #   volumes:
+  #     - ./monitor:/home/monitor
+  #     - ./people-counting:/home/people-counting
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   runtime: nvidia
+  #   environment:
+  #     - NVIDIA_VISIBLE_DEVICES=all
+  #   depends_on:
+  #     - monitor
 
   stream:
     build: ./stream
@@ -40,13 +41,13 @@ services:
       # - "/dev/video2:/dev/video2"
       # - "/dev/video3:/dev/video3"
 
-  monitor:
-    build: ./monitor
-    volumes:
-      - ./monitor:/home/monitor
-      - /tmp/.X11-unix:/tmp/.X11-unix
-    devices:
-      - "/dev/video0:/dev/video0"
-      - "/dev/video1:/dev/video1"
-      # - "/dev/video2:/dev/video2"
-      # - "/dev/video3:/dev/video3"
+  # monitor:
+  #   build: ./monitor
+  #   volumes:
+  #     - ./monitor:/home/monitor
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #   devices:
+  #     - "/dev/video0:/dev/video0"
+  #     - "/dev/video1:/dev/video1"
+  #     # - "/dev/video2:/dev/video2"
+  #     # - "/dev/video3:/dev/video3"
