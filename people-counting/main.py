@@ -8,33 +8,36 @@ import pandas as pd
 import csv
 import matplotlib.pyplot as plt
 import smtplib
+import datetime
+import pytz
 
 
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 
-from tracker import *
-from heatmap import HeatMap
+from lib.tracker.tracker import *
+from lib.heatmap.heatmap import HeatMap
 from ultralytics import YOLO
 
 
 def main():
+    saopaulo_timezone = pytz.timezone('America/Sao_Paulo')
 #excluir csv
-    if os.path.exists('./dados.csv'):
-        os.remove('./dados.csv')
+    if os.path.exists('./data/dados.csv'):
+        os.remove('./data/dados.csv')
     else:
         pass
 
 #excluir csv2
-    if os.path.exists('./heatmap.csv'):
-        os.remove('./heatmap.csv')
+    if os.path.exists('./data/heatmap.csv'):
+        os.remove('./data/heatmap.csv')
     else:
         pass
 
     # Load model
     verbose = False
-    model = YOLO('./yolov8s.pt')
+    model = YOLO('./resources/yolov8s.pt')
 
     # Load Tracker class
     tracker = Tracker()
@@ -48,7 +51,7 @@ def main():
     frame_shape = np.shape(initial_frame)
 
     # Get object classes
-    file = open('./coco.names', 'r')
+    file = open('./resources/coco.names', 'r')
     data = file.read()
     class_list = data.split('\n')
 
@@ -70,12 +73,12 @@ def main():
     accumulated_image = np.zeros(
         (frame_shape[0], frame_shape[1]), dtype=np.uint64)
 
-    output_heatmap_path = './heatmap_images'
-    output_csv_path = './dados.csv'
+    output_heatmap_path = './data/heatmap_images'
+    output_csv_path = './data/dados.csv'
 
     time_to_save_heatmap = 15  # in seconds
-    last_increment_time = time.time()
-    last_csv_update_time = time.time()
+    last_increment_time = datetime.datetime.now(saopaulo_timezone)
+    last_csv_update_time = datetime.datetime.now(saopaulo_timezone)
 
     csv_update_counter = 0
 
@@ -148,18 +151,18 @@ def main():
             # Create heat map
             accumulated_image[y3:y4, x3:x4] += 1
 
-            current_time = time.time()
-            if current_time - last_increment_time >= time_to_save_heatmap:
+            current_time = datetime.datetime.now(saopaulo_timezone)
+            if (current_time - last_increment_time).total_seconds() >= time_to_save_heatmap:
                 HEATMAP = heat_map.plot_heatmap(
                     accumulated_image, black_image, alpha, color_map=cv2.COLORMAP_JET)
                 
 
                 #transforma a imagem para o tipo panda dataframe
                 df = pd.DataFrame(accumulated_image)
-                df.to_csv('heatmap.csv', index=False)
+                df.to_csv('data/heatmap.csv', index=False)
 
                 #salva o heatmap em png
-                cv2.imwrite(f'heatmap_{time.strftime("%Y-%m-%d %H:%M:%S", time.gmtime(time.time()))}.png', HEATMAP)
+                cv2.imwrite(f'data/heatmap_{current_time.strftime("%Y-%m-%d %H:%M:%S")}.png', HEATMAP)
 
                 last_increment_time = current_time
 
@@ -177,8 +180,8 @@ def main():
         cvzone.putTextRect(frame, f'Up: {upcount}', (50, 160), 2, 2)
 
         # Atualizar o arquivo CSV a cada hora
-        current_time = time.time()
-        if current_time - last_csv_update_time >= 15:  # 3600 segundos = 1 hora
+        current_time = datetime.datetime.now(saopaulo_timezone)
+        if (current_time - last_csv_update_time).total_seconds() >= 15:  # 3600 segundos = 1 hora
             with open(output_csv_path, mode='a', newline='') as file:
                 writer = csv.writer(file)
 
@@ -188,8 +191,8 @@ def main():
                     writer.writerow(['Data', 'Horário', 'Saiu', 'Entrou', 'Ocupação'])
                 
                 
-                writer.writerow([time.strftime(
-                    '%Y-%m-%d %H:%M:%S', time.localtime()), downcount, upcount, inside])
+                writer.writerow([current_time.strftime(
+                    '%Y-%m-%d'), current_time.strftime('%H:%M:%S'), downcount, upcount, inside])
             
             #att o timer
             last_csv_update_time = current_time
@@ -197,57 +200,57 @@ def main():
             # incrementa o contador de informções da planilha
             csv_update_counter += 1
 
-            # #Email
-            # if csv_update_counter == 4:
-            #     try:
-            #         # Email setup
-            #         sender_email = "pedropedrosa@lapisco.ifce.edu.br"
-            #         sender_password = "@lapisco2024"
-            #         receiver_email = "pedrofeijo@lapisco.ifce.edu.br"
+            #Email
+            if csv_update_counter == 4:
+                try:
+                    # Email setup
+                    sender_email = "pedropedrosa@lapisco.ifce.edu.br"
+                    sender_password = "@lapisco2024"
+                    receiver_email = "pedrofeijo@lapisco.ifce.edu.br"
 
-            #         print("A1")
-            #         msg = MIMEMultipart()
-            #         msg['From'] = sender_email
-            #         msg['To'] = receiver_email
-            #         msg['Subject'] = "CSV File Update"
-            #         print("A2")
-            #         # Add text message to email body
-            #         body = "Olá,\n\nSegue relatório(s) referente(s) ao mapa de calor do local e/ou presença do público.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
-            #         msg.attach(MIMEText(body, 'plain'))
-            #         print("A3")
+                    print("A1")
+                    msg = MIMEMultipart()
+                    msg['From'] = sender_email
+                    msg['To'] = receiver_email
+                    msg['Subject'] = "CSV File Update"
+                    print("A2")
+                    # Add text message to email body
+                    body = "Olá,\n\nSegue relatório(s) referente(s) ao mapa de calor do local e/ou presença do público.\n\nAtenciosamente,\nEquipe do Lapisco/Instituto Iracema."
+                    msg.attach(MIMEText(body, 'plain'))
+                    print("A3")
 
-            #         # Attach CSV file
-            #         with open(output_csv_path, 'rb') as csv_file:
-            #             print("A4")
-            #             attachment = MIMEApplication(csv_file.read(), _subtype="csv")
-            #             attachment.add_header('Content-Disposition', 'attachment', filename=f'{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
-            #             msg.attach(attachment)
-            #             print("A5")
+                    # Attach CSV file
+                    with open(output_csv_path, 'rb') as csv_file:
+                        print("A4")
+                        attachment = MIMEApplication(csv_file.read(), _subtype="csv")
+                        attachment.add_header('Content-Disposition', 'attachment', filename=f'data/{current_time.strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+                        msg.attach(attachment)
+                        print("A5")
                     
-            #         # Attach heatmap CSV file
-            #         with open('heatmap.csv', 'rb') as heatmap_file:
-            #             attachment_heatmap = MIMEApplication(heatmap_file.read(), _subtype="csv")
-            #             attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'heatmap_{time.strftime("%Y-%m-%d_%H-%M-%S", time.gmtime(time.time()))}.csv')
-            #             msg.attach(attachment_heatmap)
+                    # Attach heatmap CSV file
+                    with open('heatmap.csv', 'rb') as heatmap_file:
+                        attachment_heatmap = MIMEApplication(heatmap_file.read(), _subtype="csv")
+                        attachment_heatmap.add_header('Content-Disposition', 'attachment', filename=f'data/heatmap_{current_time.strftime("%Y-%m-%d_%H-%M-%S")}.csv')
+                        msg.attach(attachment_heatmap)
 
-            #         # Connect to the SMTP server and send email
-            #         with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as server:
-            #             print("A6")
-            #             server.starttls()
-            #             print("A7")
-            #             server.login(sender_email, sender_password)
-            #             print("A8")
-            #             server.sendmail(sender_email, receiver_email, msg.as_string())
-            #             print("Email enviado")
-            #     except:
-            #         print("Falha ao enviar Email")
-            #         #lógica para salvar csv q não foi enviado
+                    # Connect to the SMTP server and send email
+                    with smtplib.SMTP('smtp.gmail.com', 587, timeout=10) as server:
+                        print("A6")
+                        server.starttls()
+                        print("A7")
+                        server.login(sender_email, sender_password)
+                        print("A8")
+                        server.sendmail(sender_email, receiver_email, msg.as_string())
+                        print("Email enviado")
+                except:
+                    print("Falha ao enviar Email")
+                    #lógica para salvar csv q não foi enviado
 
-            #     # Reset CSV 
-            #     with open(output_csv_path, mode='w', newline='') as file:
-            #         #apagar  csv
-            #         os.remove(output_csv_path)                       
-            #         csv_update_counter = 0 #zera o contador 
+                # Reset CSV 
+                with open(output_csv_path, mode='w', newline='') as file:
+                    #apagar  csv
+                    os.remove(output_csv_path)                       
+                    csv_update_counter = 0 #zera o contador 
             
 
         cv2.imwrite("./frame_temp.jpg", frame)

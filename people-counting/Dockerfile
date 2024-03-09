@@ -19,11 +19,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /home/people-counting
 
-COPY coco.names coco.names
-COPY yolov8s.pt yolov8s.pt
+COPY ./resources/coco.names  /home/people-couting/resources/coco.names
+COPY ./resources/yolov8s.pt /home/people-couting/resources/yolov8s.pt
 
-COPY heatmap.py heatmap.py
-COPY tracker.py tracker.py
+COPY ./lib/heatmap/heatmap.py ./lib/heatmap/heatmap.py
+COPY ./lib/tracker/tracker.py ./lib/tracker/tracker.py
 
 # Install project requirements
 COPY requirements.txt requirements.txt

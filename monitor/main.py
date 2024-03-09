@@ -2,7 +2,7 @@ import os
 from time import time
 import cv2
 
-STREAM = "rtsp://admin:lapisco123@200.129.48.188/LiveMedia/ch1/Media1/trackID=1"
+STREAM = 0
 
 IMAGE_SHOW = False
 
