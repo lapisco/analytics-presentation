@@ -104,7 +104,7 @@ def main():
     offset_y = 0  # ajuste o valor conforme necessário
 
     cy1 = 500
-    cy2 = 525
+    cy2 = 526
 
     offset = 6
     alpha = 0.1
