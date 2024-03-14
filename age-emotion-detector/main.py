@@ -40,14 +40,14 @@ emotions_count = {
 }
 
 age_count = {
-    '(0-2)': 0,
-    '(4-6)': 0,
-    '(8-12)': 0,
-    '(15-20)': 0,
+    # '(0-2)': 0,
+    # '(4-6)': 0,
+    # '(8-12)': 0,
+    # '(15-20)': 0,
     '(25-32)': 0,
     '(38-43)': 0,
     '(48-53)': 0,
-    '(60-100)': 0
+    # '(60-100)': 0
 }
 
 emotions = {
@@ -106,8 +106,9 @@ track_start_times = defaultdict(lambda: 0)
 MODEL_MEAN_VALUES = (78.4263377603, 87.7689143744, 114.895847746)
 ageProto = "resources/age_deploy.prototxt"
 ageModel = "resources/age_net.caffemodel"
-ageList = ['(0-2)', '(4-6)', '(8-12)', '(15-20)',
-           '(25-32)', '(38-43)', '(48-53)', '(60-100)']
+# ageList = ['(0-2)', '(4-6)', '(8-12)', '(15-20)',
+#         '(25-32)', '(38-43)', '(48-53)', '(60-100)']
+ageList = ['(25-32)', '(38-43)', '(48-53)']
 
 ageNet = cv2.dnn.readNet(ageModel, ageProto)
 
@@ -189,14 +190,14 @@ def zerar_contadores():
     }
 
     age_count = {
-        '(0-2)': 0,
-        '(4-6)': 0,
-        '(8-12)': 0,
-        '(15-20)': 0,
+        # '(0-2)': 0,
+        # '(4-6)': 0,
+        # '(8-12)': 0,
+        # '(15-20)' : 0,
         '(25-32)': 0,
         '(38-43)': 0,
         '(48-53)': 0,
-        '(60-100)': 0
+        # '(60-100)': 0
     }
 
 
@@ -207,7 +208,13 @@ def age_classifier(face):
 
     ageNet.setInput(blob)
     agePreds = ageNet.forward()
-    age = ageList[agePreds[0].argmax()]
+
+    age_index = agePreds[0].argmax()
+
+    if 0 <= age_index < len(ageList):
+        age = ageList[age_index]
+    else:
+        age = None
 
     return age
 
@@ -256,14 +263,14 @@ def process_faces(frame, box, track_id, track_history):
     emotion_prediction, emotion_probability = fer.predict_emotions(
         face, logits=False)
 
-    faceBox = [tly, bry, tlx, brx]
-    embeddings = extract_face_embeddings(frame, faceBox)
-    # embeddings = fr.face_encodings(cv2.cvtColor(face, cv2.COLOR_BGR2RGB),
-    #                                  boxes, num_jitters=jitters)
-    ages = age_classifier(face)
-
     if (np.max(emotion_probability) > 0.36):
-
+        
+        faceBox = [tly, bry, tlx, brx]
+        embeddings = extract_face_embeddings(frame, faceBox)
+        # embeddings = fr.face_encodings(cv2.cvtColor(face, cv2.COLOR_BGR2RGB),
+        #                                  boxes, num_jitters=jitters)
+        ages = age_classifier(face)
+        
         for embedding in embeddings:
             if len(embeddings_global_list) == 0:
                 embeddings_global_list.append(embedding)
@@ -280,7 +287,7 @@ def process_faces(frame, box, track_id, track_history):
                 new_face = True
                 for stored_embedding in embeddings_global_list:
                     distance = euclidean_distance(embedding, stored_embedding)
-                    if distance < 0.6:
+                    if distance < 0.57:
                         new_face = False
                         break
                 if new_face:
@@ -297,7 +304,7 @@ def process_faces(frame, box, track_id, track_history):
                         if (ages == age_option):
                             age_count[age_option] += 1
 
-        age_text = f'{ages[1:-1]} anos'
+        # age_text = f'{ages[1:-1]} anos'
         color = emotions[emotion_prediction]['color']
 
         frame = cv2.rectangle(
@@ -310,11 +317,19 @@ def process_faces(frame, box, track_id, track_history):
                             (tlx + 25, tly + int(h) +
                              36), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                             (255, 255, 255), 1, cv2.LINE_AA)
+        
+        if ages is not None:
+            age_text = f'{ages[1:-1]} anos'
 
-        frame = cv2.putText(frame, age_text,
-                            (tlx + 25, tly + int(h) +
-                             56), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            (255, 255, 255), 1, cv2.LINE_AA)
+            frame = cv2.putText(frame, age_text,
+                                (tlx + 25, tly + int(h) +
+                                 56), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                (255, 255, 255), 1, cv2.LINE_AA)
+            
+        # frame = cv2.putText(frame, age_text,
+        #                     (tlx + 25, tly + int(h) +
+        #                      56), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+        #                     (255, 255, 255), 1, cv2.LINE_AA)
 
         # Calculate the time duration the detection stayed on the screen
         current_time = time.time()
@@ -383,11 +398,11 @@ def enviar_email():
     pdf_report.add_page()
     pdf_report.set_font("Arial", size=10)
     pdf_report.cell(200, 5, txt=f"Datetime: {df['Timestamp'].tail(1).values[0]}", ln=True)
-    pdf_report.cell(200, 5, txt=f'\t \t \t \t Detected Ages: {df.iloc[:,1:9].sum().sum()}', ln=True)
-    pdf_report.cell(200, 5, txt=f'\t \t \t \t Detected Emotions: {df.iloc[:,10:-1].sum().sum()}', ln=True)
+    pdf_report.cell(200, 5, txt=f'\t \t \t \t Detected Ages: {df.iloc[:,1:3].sum().sum()}', ln=True)
+    pdf_report.cell(200, 5, txt=f'\t \t \t \t Detected Emotions: {df.iloc[:,4:-1].sum().sum()}', ln=True)
     pdf_report.cell(200, 5, txt=f"\t \t \t \t Detected People: {df['Total_Pessoas'].tail(1).values[0]}", ln=True)
-    plot_sum_of_columns_to_bytes(df.iloc[:,1:9], 'age', 'Detected Ages') # ou ler uma imagem
-    plot_sum_of_columns_to_bytes(df.iloc[:,10:-1], 'emotion', 'Detected Emotions') 
+    plot_sum_of_columns_to_bytes(df.iloc[:,1:3], 'age', 'Detected Ages') # ou ler uma imagem
+    plot_sum_of_columns_to_bytes(df.iloc[:,4:-1], 'emotion', 'Detected Emotions') 
     plot_time_graph(df, 'Timestamp', ['Total_Pessoas'], 'grafico_tempo')
 
 
@@ -473,7 +488,7 @@ while True:
     schedule.run_pending()
 
     frame = cv2.imread("../stream/frame.jpg")
-    frame = cv2.resize(frame, (640, 480))
+    # frame = cv2.resize(frame, (640, 480))
     # frame = cv2.resize(frame, None, fx=0.75, fy=0.75)
 
     # Start timer
@@ -503,11 +518,11 @@ while True:
     #             1, (255, 0, 0), 1, cv2.LINE_AA)
 
     text = f"Visitantes: {persons_counter}"
-    text_size = cv2.getTextSize(text, font, 1, 1)[0]
+    text_size = cv2.getTextSize(text, font, 1, 3)[0]
     text_width, text_height = text_size[0], text_size[1]
     text_x = (frame.shape[1] - text_width) // 2
     cv2.putText(frame, text, (5, 25), font,
-                1, (255, 0, 0), 1, cv2.LINE_AA)
+                1, (255, 255, 255), 3, cv2.LINE_AA)
 
     cv2.imwrite("./frame_temp.jpg", frame)
     os.system("mv frame_temp.jpg frame.jpg")

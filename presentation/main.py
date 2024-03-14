@@ -25,10 +25,10 @@ if __name__ == "__main__":
 
         for i, frame_an in enumerate(frames_ans):
             h, w, _ = frame_over.shape
-            square_height = h // 2 + 30  # Define a altura do retângulo aumentada em 100 pixels
+            square_height = h // 2 + 70  # Define a altura do retângulo aumentada em 100 pixels
             square_width = int(w * 0.575)  # Define a largura do retângulo
-            x = (w - square_width) // 2 + 25  # Desloca o retângulo para a direita em 50 pixels
-            y = (h - square_height) // 2 - 10  # Calcula a coordenada y do canto superior esquerdo do retângulo
+            x = (w - square_width) // 2 + 60  # Desloca o retângulo para a direita em 50 pixels
+            y = (h - square_height) // 2 - 20  # Calcula a coordenada y do canto superior esquerdo do retângulo
 
             frame_an = cv2.resize(frame_an, (square_width, square_height))
             frame_over[y:y + square_height, x:x + square_width, :] = frame_an

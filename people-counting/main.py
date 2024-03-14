@@ -84,7 +84,7 @@ def main():
 
     # Load initial frame
     initial_frame = cv2.imread("../monitor/frame.jpg")
-    initial_frame = cv2.resize(initial_frame, (840, 560))
+    # initial_frame = cv2.resize(initial_frame, (840, 560))
     frame_shape = np.shape(initial_frame)
 
     # Get object classes
@@ -100,8 +100,11 @@ def main():
     personup = {}
     counter2 = []
 
-    cy1 = 400
-    cy2 = 425
+    offset_x = 700  # ajuste o valor conforme necessário
+    offset_y = 0  # ajuste o valor conforme necessário
+
+    cy1 = 500
+    cy2 = 525
 
     offset = 6
     alpha = 0.1
@@ -121,7 +124,7 @@ def main():
 
     while True:
         frame = cv2.imread("../monitor/frame.jpg")
-
+        BACKGROUND_HEATMAP = np.copy(frame)
 
         count += 1
         if (count % 3 != 0):
@@ -191,7 +194,7 @@ def main():
             current_time = datetime.datetime.now(saopaulo_timezone)
             if (current_time - last_increment_time).total_seconds() >= time_to_save_heatmap:
                 HEATMAP = heat_map.plot_heatmap(
-                    accumulated_image, black_image, alpha, color_map=cv2.COLORMAP_JET)
+                    accumulated_image, black_image, BACKGROUND_HEATMAP, alpha, color_map=cv2.COLORMAP_JET)
                 
 
                 #transforma a imagem para o tipo panda dataframe
@@ -208,8 +211,9 @@ def main():
 
                 accumulated_image = np.zeros(
                     (frame_shape[0], frame_shape[1]), dtype=np.uint64)
-        cv2.line(frame, (0, cy1), (frame_shape[1], cy1), (0, 255, 0), 2)
-        cv2.line(frame, (0, cy2), (frame_shape[1], cy2), (0, 255, 255), 2)
+
+        cv2.line(frame, (0 + offset_x, cy1 - offset_y), (frame_shape[1] + offset_x + 400, cy1 - offset_y), (0, 255, 0), 2)
+        cv2.line(frame, (0 + offset_x, cy2 - offset_y), (frame_shape[1] + offset_x + 400, cy2 - offset_y), (0, 255, 255), 2)
 
         downcount = len(counter1)
         upcount = len(counter2)

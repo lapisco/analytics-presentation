@@ -6,8 +6,7 @@ class HeatMap:
     def __init__(self) -> None:
         pass
 
-    def plot_heatmap(self, accumulated_image, black_image, alpha=0.1, color_map=cv2.COLORMAP_HOT, kernel=(15, 15), apply_blur=True):
-
+    def plot_heatmap(self, accumulated_image, black_image, background_heatmap, alpha=0.1, color_map=cv2.COLORMAP_HOT, kernel=(15, 15), apply_blur=True):
         norm_image = (accumulated_image - accumulated_image.min()) / (
             accumulated_image.max() - accumulated_image.min() + 1e-8) * 255
         norm_image = norm_image.astype('uint8')
@@ -16,14 +15,19 @@ class HeatMap:
             norm_image = cv2.GaussianBlur(norm_image, kernel, 0)
 
         black_image = cv2.applyColorMap(norm_image, color_map)
-        black_image = black_image.astype('uint16')
+        black_image = black_image.astype(background_heatmap.dtype)  # Convert to the same dtype
 
         black_image[:, :, 0][black_image[:, :, 1] == 0] = 0
         black_image[:, :, 0][black_image[:, :, 2] == 0] = 0
 
-        accumulated_image = alpha + (1 - alpha) * accumulated_image
+        alpha_frame_gray = cv2.cvtColor(background_heatmap, cv2.COLOR_BGR2GRAY)
 
-        return np.asarray(black_image, np.uint8)
+        accumulated_image = alpha * alpha_frame_gray + (1 - alpha) * accumulated_image
+
+        finalimg = cv2.addWeighted(black_image, 0.7, background_heatmap, 0.3, 0)
+
+        return np.asarray(finalimg, np.uint8)
+
     
     def iterative_heatmap(self, accumulated_image, image, alpha=0.1, color_map=cv2.COLORMAP_HOT, kernel=(15, 15), apply_blur=True):
 

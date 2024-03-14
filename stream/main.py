@@ -2,7 +2,7 @@ import os
 from time import time
 import cv2
 
-STREAM = 0
+STREAM = "rtsp://admin:lapisco123@192.168.8.108/LiveMedia/ch1/Media1"
 IMAGE_SHOW = False
 
 os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
@@ -21,6 +21,8 @@ if __name__ == "__main__":
 
         while True:
             ret, frame = cap.read()
+
+            frame = cv2.resize(frame, None, fx=0.5, fy=0.5)
 
             # Start timer
             new_frame_time = time()
